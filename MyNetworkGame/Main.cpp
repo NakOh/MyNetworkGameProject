@@ -346,7 +346,6 @@ void _GameProc(int FullScreen)
 	BackScreen->Blt(&myGoStopSize, StopImage, &goStop[rand() % 20], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
 	//Random으로 한 장 뽑기! 상대 패!
-
 	otherGoStopSize.left = 500;
 	otherGoStopSize.right = otherGoStopSize.left + 80;
 	otherGoStopSize.top = 500;
@@ -439,7 +438,24 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 	case WM_LBUTTONDOWN:
 		if (Click == false){
-			if (600 <= MouseX <= 723 && 70 <= MouseY <= 110)
+			//족보 버튼
+			if (600 <= MouseX && MouseX<= 723 && 70 <= MouseY && MouseY <= 110)
+			{
+				Click = true;
+			}
+			//아무것도 하지 않는다 버튼
+			if (1000 <= MouseX && MouseX <= 1154 && 300 <= MouseY && MouseY <= 380)
+			{
+				Click = true;
+			}
+			//밑 장 버튼
+			if (1000 <= MouseX && MouseX <= 1154 && 400 <= MouseY && MouseY <= 480)
+			{
+				Click = true;
+			}
+
+			//손 모가지 버튼
+			if (1000 <= MouseX && MouseX <= 1154 && 500 <= MouseY && MouseY <= 580)
 			{
 				Click = true;
 			}
