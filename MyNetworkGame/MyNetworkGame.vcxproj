@@ -81,11 +81,14 @@
     <ClCompile Include="DSUTIL.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="tcpClientPacket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DDUTIL.h" />
     <ClInclude Include="DSUTIL.h" />
     <ClInclude Include="Packet.h" />
+    <ClInclude Include="wspiapi.h" />
+    <ClInclude Include="wtpipv6.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

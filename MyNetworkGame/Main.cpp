@@ -19,7 +19,8 @@ LPDIRECTDRAWSURFACE  RealScreen;
 LPDIRECTDRAWSURFACE  BackScreen;
 LPDIRECTDRAWCLIPPER	 ClipScreen;
 
-LPDIRECTDRAWSURFACE  SpriteImage;
+LPDIRECTDRAWSURFACE  StopImage;
+LPDIRECTDRAWSURFACE  ResourceImage[4];
 LPDIRECTDRAWSURFACE  BackImage;
 
 LPDIRECTSOUND       SoundOBJ = NULL;
@@ -27,12 +28,8 @@ LPDIRECTSOUNDBUFFER SoundDSB = NULL;
 DSBUFFERDESC        DSB_desc;
 HSNDOBJ Sound[10];
 
-void CommInit(int argc, char **argv);
-void CommSend();
-int MouseX, MouseY;
-bool space = false;
-bool checkTime = false;
-
+//void CommInit(int argc, char **argv);
+//void CommSend();
 //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -78,10 +75,18 @@ void _ReleaseAll(void)
 			RealScreen->Release();
 			RealScreen = NULL;
 		}
-		if (SpriteImage != NULL)
+		if (StopImage != NULL)
 		{
-			SpriteImage->Release();
-			SpriteImage = NULL;
+			StopImage->Release();
+			StopImage = NULL;
+		}
+		for (int i = 0; i < 5; i++)
+		{
+		if (ResourceImage[i] != NULL)
+			{
+				ResourceImage[i]->Release();
+				ResourceImage[i] = NULL;
+			}
 		}
 
 		DirectOBJ->Release();
@@ -194,235 +199,181 @@ BOOL _GameMode(HINSTANCE hInstance, int nCmdShow, DWORD  x, DWORD  y, DWORD  bpp
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// Implmentation Here
 
-#define MAX_OBJ	20
-
-struct _OBJECT
-{
-	int		Type;	// 1,2,3
-	int		srcWidth, srcHeight;
-	int		srcX, srcY;
-	int		TargetX, TagretY;
-	int		TargetSize;
-	int		X1, Y1, X2, Y2;
-
-	int		Attack, Crash;
-	int		Location, Move, Show;
-	int		Demage, Death;
-	int		Weapon, Hit;
-	double	Level, HP, MP, EXP;
-};
-_OBJECT Object[MAX_OBJ];
-
-double  distant;
-double cosangle, sinangle;
-
-double  t1;
-double  t2;
-
-int notFocus = 1;
-
-int  speed = 0;
-
-bool static goRight = true;
 
 
+RECT    srcRect[20];
 void _GameProc(int FullScreen)
 {
-	RECT	BackRect = { 0, 0, 640, 480 };
-	RECT	srcRect, dstRect[2];
-	int		BaseY = 350;
+	RECT	BackRect = { 0, 0, 1280, 720 };
+	
 
-	// Clear Back Ground
-	BackScreen->BltFast(0, 0, BackImage, &BackRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	// BackGround
+	BackScreen->BltFast(0, 0, BackImage, &BackRect, NULL);
+
+	// 10¿ù ´ÜÇ³ »ç½¿
+	srcRect[0].left = 5;
+	srcRect[0].top = 5;
+	srcRect[0].right = 50;
+	srcRect[0].bottom = 75;
+	BackScreen->BltFast(10, 50, StopImage, &srcRect[0], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	// 10¿ù ´ÜÇ³ Ã»´Ü
+	srcRect[1].left = 50;
+	srcRect[1].top = 5;
+	srcRect[1].right = 95;
+	srcRect[1].bottom = 75;
+	BackScreen->BltFast(55, 50, StopImage, &srcRect[1], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	// 9¿ù ±¹È­ ½ÖÇÇ
+	srcRect[2].left = 117;
+	srcRect[2].top = 5;
+	srcRect[2].right = 162;
+	srcRect[2].bottom = 75;
+	BackScreen->BltFast(95, 50, StopImage, &srcRect[2], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//9¿ù ±¹È­ Ã»´Ü
+	srcRect[3].left = 162;
+	srcRect[3].top = 5;
+	srcRect[3].right = 207;
+	srcRect[3].bottom = 75;
+	BackScreen->BltFast(145, 50, StopImage, &srcRect[3], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//8¿ù °ø»ê ±¤
+	srcRect[4].left = 230;
+	srcRect[4].top = 5;
+	srcRect[4].right = 275;
+	srcRect[4].bottom = 75;
+	BackScreen->BltFast(195, 50, StopImage, &srcRect[4], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	
+	//8¿ù °ø»ê »õ
+	srcRect[5].left = 275;
+	srcRect[5].top = 5;
+	srcRect[5].right = 320;
+	srcRect[5].bottom = 75;
+	BackScreen->BltFast(245, 50, StopImage, &srcRect[5], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//7¿ù È«½Î¸® ¸äµÅÁö
+	srcRect[6].left = 343;
+	srcRect[6].top = 5;
+	srcRect[6].right = 388;
+	srcRect[6].bottom = 75;
+	BackScreen->BltFast(295, 50, StopImage, &srcRect[6], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//7¿ù È«½Î¸® ÃÊ´Ü
+	srcRect[7].left = 388;
+	srcRect[7].top = 5;
+	srcRect[7].right = 433;
+	srcRect[7].bottom = 75;
+	BackScreen->BltFast(345, 50, StopImage, &srcRect[7], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//6¿ù ¸ð¶õ ³ªºñ
+	srcRect[8].left = 5;
+	srcRect[8].top = 90;
+	srcRect[8].right = 50;
+	srcRect[8].bottom = 160;
+	BackScreen->BltFast(395, 50, StopImage, &srcRect[8], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//6¿ù ¸ð¶õ Ã»´Ü
+	srcRect[9].left = 50;
+	srcRect[9].top = 90;
+	srcRect[9].right = 95;
+	srcRect[9].bottom = 160;
+	BackScreen->BltFast(445, 50, StopImage, &srcRect[9], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//5¿ù ³­ÃÊ ±×¸²
+	srcRect[10].left = 117;
+	srcRect[10].top = 90;
+	srcRect[10].right = 162;
+	srcRect[10].bottom = 160;
+	BackScreen->BltFast(495, 50, StopImage, &srcRect[10], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//5¿ù ³­ÃÊ ÃÊ´Ü
+	srcRect[11].left = 164;
+	srcRect[11].top = 90;
+	srcRect[11].right =207;
+	srcRect[11].bottom = 160;
+	BackScreen->BltFast(545, 50, StopImage, &srcRect[11], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//4¿ù Èæ½Î¸® »õ
+	srcRect[12].left = 230;
+	srcRect[12].top = 90;
+	srcRect[12].right = 274;
+	srcRect[12].bottom = 160;
+	BackScreen->BltFast(595, 50, StopImage, &srcRect[12], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//4¿ù Èæ½Î¸® ÃÊ´Ü
+	srcRect[13].left = 276;
+	srcRect[13].top = 90;
+	srcRect[13].right = 319;
+	srcRect[13].bottom = 160;
+	BackScreen->BltFast(645, 50, StopImage, &srcRect[13], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//3¿ù º¢²É ±¤
+	srcRect[14].left = 342;
+	srcRect[14].top = 90;
+	srcRect[14].right = 385;
+	srcRect[14].bottom = 160;
+	BackScreen->BltFast(695, 50, StopImage, &srcRect[14], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//3¿ù º¢²É È«´Ü
+	srcRect[15].left = 388;
+	srcRect[15].top = 90;
+	srcRect[15].right = 431;
+	srcRect[15].bottom = 160;
+	BackScreen->BltFast(745, 50, StopImage, &srcRect[15], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//2¿ù ¸ÅÈ­ »õ
+	srcRect[16].left = 6;
+	srcRect[16].top = 176;
+	srcRect[16].right = 49;
+	srcRect[16].bottom = 242;
+	BackScreen->BltFast(795, 50, StopImage, &srcRect[16], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//2¿ù ¸ÅÈ­ È«´Ü
+	srcRect[17].left = 52;
+	srcRect[17].top = 176;
+	srcRect[17].right = 95;
+	srcRect[17].bottom = 242;
+	BackScreen->BltFast(845, 50, StopImage, &srcRect[17], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//1¿ù ¼Ò³ª¹« ±¤
+	srcRect[18].left = 119;
+	srcRect[18].top = 176;
+	srcRect[18].right = 161;
+	srcRect[18].bottom = 242;
+	BackScreen->BltFast(895, 50, StopImage, &srcRect[18], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//1¿ù ¼Ò³ª¹« È«´Ü
+	srcRect[19].left = 164;
+	srcRect[19].top = 176;
+	srcRect[19].right = 207;
+	srcRect[19].bottom = 242;
+	BackScreen->BltFast(945, 50, StopImage, &srcRect[19], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
 
 
-	//////////////////////////////
 
-	// Enter splite animation here
-	if (space == true){
-		if (checkTime == true){
-			//1¹ø °è»ê¸¸ ÇÊ¿äÇÑ °Íµé
-			t1 = clock() / 100;
-			distant = sqrt(pow((double)(MouseX - 50), 2) + pow((double)(MouseY - 350), 2));
-			cosangle = (MouseX - 50) / distant;
-			sinangle = (360 - MouseY) / distant;
-			checkTime = false;
-		}
-		t2 = clock() / 100;
-	}
-
-	// Canon x= 10, 85, 150-220,   y=350, 410
-	srcRect.left = 10;
-	srcRect.top = 350;
-	srcRect.right = 85;
-	srcRect.bottom = 410;
-	BackScreen->BltFast(50, BaseY, SpriteImage, &srcRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
-
-
-	// Ball x=235, 255    y=365,385
-	srcRect.left = 235;
-	srcRect.top = 365;
-	srcRect.right = 255;
-	srcRect.bottom = 385;
-
-
-	dstRect[0].left = 120 + (int)(60 * cosangle * (t2 - t1)) % 640;
-	dstRect[0].top = 350 - (int)(60 * sinangle * (t2 - t1) - 0.5*9.8 * (t2 - t1)*(t2 - t1)) % 480;
-	dstRect[0].right = dstRect[0].left + 20;
-	dstRect[0].bottom = dstRect[0].top + 20;
-
-	if (dstRect[0].right >= 650 || dstRect[0].bottom >= 500)
-		space = false;
-	BackScreen->Blt(&dstRect[0], SpriteImage, &srcRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
-
-	//Ãæµ¹Ã¼ ±¸Çö
-	if ((dstRect[1].left <= dstRect[0].right <= dstRect[1].right && dstRect[1].top <= dstRect[0].bottom <= dstRect[1].bottom) ||
-		(dstRect[1].left <= dstRect[0].left <= dstRect[1].right && dstRect[1].top <= dstRect[0].bottom <= dstRect[1].bottom)){
-
-		srcRect.left = 255;
-		srcRect.top = 350;
-		srcRect.right = 340;
-		srcRect.bottom = 410;
-
-
-	}
-	else{
-		// Hero x=0, 60    y=0,50
-		srcRect.left = 0;
-		srcRect.top = 0;
-		srcRect.right = 60;
-		srcRect.bottom = 50;
-	}
-
-	dstRect[1].left = 500 + speed;
-	dstRect[1].top = 350;
-	dstRect[1].right = dstRect[1].left + 60;
-	dstRect[1].bottom = dstRect[1].top + 50;
-
-	if (dstRect[1].left + speed > 550){ goRight = false; }
-
-	if (dstRect[1].left + speed < 300){ goRight = true; }
-
-	if (goRight){ speed += 2; }
-	else { speed += -2; }
-
-
-
-	BackScreen->Blt(&dstRect[1], SpriteImage, &srcRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
-
-	/////////////////////////////////
-
+	srand(120);
+	BackScreen->BltFast(50, 200, StopImage, &srcRect[rand() % 20], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	
 	if (FullScreen)
 		RealScreen->Flip(NULL, DDFLIP_WAIT);
 	else{
 		RECT WinRect;
-		RECT Rect = { 0, 0, 640, 480 };
+		RECT Rect = { 0, 0, 1280, 720 };
 
 		GetWindowRect(MainHwnd, &WinRect);
 		RealScreen->Blt(&WinRect, BackScreen, &Rect, DDBLT_WAIT, NULL);
 	}
 
 }
-
-void _RecvGameProc(int FullScreen)
-{
-	RECT	BackRect = { 0, 0, 640, 480 };
-	RECT	srcRect;
-	RECT    dstRect[2];
-	int		BaseY = 350;
-
-
-
-	// Clear Back Ground
-	BackScreen->BltFast(0, 0, BackImage, &BackRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
-
-
-	//////////////////////////////
-
-
-
-	// Canon x= 10, 85, 150-220,   y=350, 410
-	srcRect.left = 10;
-	srcRect.top = 350;
-	srcRect.right = 85;
-	srcRect.bottom = 410;
-	BackScreen->BltFast(50, BaseY, SpriteImage, &srcRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
-
-
-	// Ball x=235, 255    y=365,385
-	srcRect.left = 235;
-	srcRect.top = 365;
-	srcRect.right = 255;
-	srcRect.bottom = 385;
-
-
-	dstRect[0].left = 120 + (int)(60 * cosangle * (t2 - t1)) % 640;
-	dstRect[0].top = 350 - (int)(60 * sinangle * (t2 - t1) - 0.5*9.8 * (t2 - t1)*(t2 - t1)) % 480;
-	dstRect[0].right = dstRect[0].left + 20;
-	dstRect[0].bottom = dstRect[0].top + 20;
-
-	if (dstRect[0].right >= 650 || dstRect[0].bottom >= 500)
-		space = false;
-
-	BackScreen->Blt(&dstRect[0], SpriteImage, &srcRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
-
-	//Ãæµ¹Ã¼ ±¸Çö
-	if ((dstRect[1].left <= dstRect[0].right <= dstRect[1].right && dstRect[1].top <= dstRect[0].bottom <= dstRect[1].bottom) ||
-		(dstRect[1].left <= dstRect[0].left <= dstRect[1].right && dstRect[1].top <= dstRect[0].bottom <= dstRect[1].bottom)){
-
-		srcRect.left = 255;
-		srcRect.top = 350;
-		srcRect.right = 340;
-		srcRect.bottom = 410;
-
-
-	}
-	else{
-		// Hero x=0, 60    y=0,50
-		srcRect.left = 0;
-		srcRect.top = 0;
-		srcRect.right = 60;
-		srcRect.bottom = 50;
-	}
-
-	dstRect[1].left = 500 + speed;
-	dstRect[1].top = 350;
-	dstRect[1].right = dstRect[1].left + 60;
-	dstRect[1].bottom = dstRect[1].top + 50;
-
-	if (dstRect[1].left + speed > 550){ goRight = false; }
-
-	if (dstRect[1].left + speed < 300){ goRight = true; }
-
-	if (goRight){ speed += 2; }
-	else { speed += -2; }
-
-
-
-	BackScreen->Blt(&dstRect[1], SpriteImage, &srcRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
-
-	/////////////////////////////////
-
-	if (FullScreen)
-		RealScreen->Flip(NULL, DDFLIP_WAIT);
-	else{
-		RECT WinRect;
-		RECT Rect = { 0, 0, 640, 480 };
-
-		GetWindowRect(MainHwnd, &WinRect);
-		RealScreen->Blt(&WinRect, BackScreen, &Rect, DDBLT_WAIT, NULL);
-	}
-}
-
-
 
 long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
 	case WM_MOUSEMOVE:
-		MouseX = LOWORD(lParam);
-		MouseY = HIWORD(lParam);
+		//MouseX = LOWORD(lParam);
+		//MouseY = HIWORD(lParam);
 		break;
 
 	case WM_LBUTTONDOWN:
@@ -434,15 +385,9 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		break;
 
 	case WM_TIMER:
-		if (GetFocus() == MainHwnd){
-			notFocus = 1;
-			CommSend();
+		//	CommSend();
 			_GameProc(0);
-		}
-		else{
-			notFocus = 0;
-			_RecvGameProc(0);
-		}
+		
 		break;
 
 	case WM_KEYDOWN:
@@ -468,8 +413,6 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 
 		case VK_SPACE:
-			space = true;
-			checkTime = true;
 			break;
 
 		case VK_CONTROL:
@@ -482,29 +425,42 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	MSG msg;
 
-	if (!_GameMode(hInstance, nCmdShow, 640, 480, 32, 0)) return FALSE;
+	if (!_GameMode(hInstance, nCmdShow, 1280, 720, 32, 0)) return FALSE;
 
-	CommInit(NULL, NULL);
+	//CommInit(NULL, NULL);
+
+	
+	StopImage = DDLoadBitmap(DirectOBJ, "Stop.BMP", 0, 0);
+	DDSetColorKey(StopImage, RGB(0, 0, 0));
+
+	ResourceImage[0] = DDLoadBitmap(DirectOBJ, "First.BMP", 0, 0);
+	DDSetColorKey(ResourceImage[0], RGB(0, 0, 0));
+
+	ResourceImage[1] = DDLoadBitmap(DirectOBJ, "Ending.BMP", 0, 0);
+	DDSetColorKey(ResourceImage[1], RGB(0, 0, 0));
+
+	ResourceImage[2] = DDLoadBitmap(DirectOBJ, "Horror.BMP", 0, 0);
+	DDSetColorKey(ResourceImage[2], RGB(0, 0, 0));
+
+	ResourceImage[3] = DDLoadBitmap(DirectOBJ, "Setting.BMP", 0, 0);
+	DDSetColorKey(ResourceImage[3], RGB(0, 0, 0));
+
+	ResourceImage[4] = DDLoadBitmap(DirectOBJ, "Sonmogazi.BMP", 0, 0);
+	DDSetColorKey(ResourceImage[4], RGB(0, 0, 0));
+
 
 	BackImage = DDLoadBitmap(DirectOBJ, "Back.BMP", 0, 0);
 	DDSetColorKey(BackImage, RGB(0, 0, 0));
 
-	SpriteImage = DDLoadBitmap(DirectOBJ, "Char.BMP", 0, 0);
-	DDSetColorKey(SpriteImage, RGB(0, 0, 0));
-
 	if (_InitDirectSound())
 	{
-		Sound[0] = SndObjCreate(SoundOBJ, "MUSIC.WAV", 1);
-		Sound[1] = SndObjCreate(SoundOBJ, "land.WAV", 2);
-		Sound[2] = SndObjCreate(SoundOBJ, "gun.WAV", 2);
-		//        SndObjPlay( Sound[0], DSBPLAY_LOOPING );
+		Sound[0] = SndObjCreate(SoundOBJ, "OST.mp3", 1);
+		Sound[1] = SndObjCreate(SoundOBJ, "Select2.mp3", 1);
+		Sound[2] = SndObjCreate(SoundOBJ, "Select3.mp3", 1);
 	}
 
 	SetTimer(MainHwnd, 1, 10, NULL);
@@ -522,4 +478,4 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	return TRUE;
 }
 
-///////////////////// End of Game Program
+

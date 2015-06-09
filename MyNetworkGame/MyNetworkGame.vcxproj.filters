@@ -27,6 +27,9 @@
     <ClCompile Include="Packet.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="tcpClientPacket.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DDUTIL.h">
@@ -36,6 +39,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Packet.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="wspiapi.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="wtpipv6.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
