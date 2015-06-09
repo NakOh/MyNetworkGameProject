@@ -20,13 +20,16 @@ LPDIRECTDRAWSURFACE  BackScreen;
 LPDIRECTDRAWCLIPPER	 ClipScreen;
 
 LPDIRECTDRAWSURFACE  StopImage;
-LPDIRECTDRAWSURFACE  ResourceImage[4];
+LPDIRECTDRAWSURFACE  ResourceImage[10];
 LPDIRECTDRAWSURFACE  BackImage;
 
 LPDIRECTSOUND       SoundOBJ = NULL;
 LPDIRECTSOUNDBUFFER SoundDSB = NULL;
 DSBUFFERDESC        DSB_desc;
 HSNDOBJ Sound[10];
+
+int MouseX, MouseY;
+bool Click = false;
 
 //void CommInit(int argc, char **argv);
 //void CommSend();
@@ -201,160 +204,218 @@ BOOL _GameMode(HINSTANCE hInstance, int nCmdShow, DWORD  x, DWORD  y, DWORD  bpp
 
 
 
-RECT    srcRect[20];
+
 void _GameProc(int FullScreen)
 {
 	RECT	BackRect = { 0, 0, 1280, 720 };
-	
+	RECT    ZokBoSize = { 0, 30, 1280, 700 };
+	RECT    myGoStopSize, otherGoStopSize;
+	RECT    ButtonRect, goStop[20], ZokBo;
 
+
+	srand(120);
 	// BackGround
 	BackScreen->BltFast(0, 0, BackImage, &BackRect, NULL);
 
 	// 10월 단풍 사슴
-	srcRect[0].left = 5;
-	srcRect[0].top = 5;
-	srcRect[0].right = 50;
-	srcRect[0].bottom = 75;
-	BackScreen->BltFast(10, 50, StopImage, &srcRect[0], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[0].left = 5;
+	goStop[0].top = 5;
+	goStop[0].right = 50;
+	goStop[0].bottom = 75;
 
 	// 10월 단풍 청단
-	srcRect[1].left = 50;
-	srcRect[1].top = 5;
-	srcRect[1].right = 95;
-	srcRect[1].bottom = 75;
-	BackScreen->BltFast(55, 50, StopImage, &srcRect[1], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[1].left = 50;
+	goStop[1].top = 5;
+	goStop[1].right = 95;
+	goStop[1].bottom = 75;
 
 	// 9월 국화 쌍피
-	srcRect[2].left = 117;
-	srcRect[2].top = 5;
-	srcRect[2].right = 162;
-	srcRect[2].bottom = 75;
-	BackScreen->BltFast(95, 50, StopImage, &srcRect[2], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[2].left = 117;
+	goStop[2].top = 5;
+	goStop[2].right = 162;
+	goStop[2].bottom = 75;
 
 	//9월 국화 청단
-	srcRect[3].left = 162;
-	srcRect[3].top = 5;
-	srcRect[3].right = 207;
-	srcRect[3].bottom = 75;
-	BackScreen->BltFast(145, 50, StopImage, &srcRect[3], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[3].left = 162;
+	goStop[3].top = 5;
+	goStop[3].right = 207;
+	goStop[3].bottom = 75;
 
 	//8월 공산 광
-	srcRect[4].left = 230;
-	srcRect[4].top = 5;
-	srcRect[4].right = 275;
-	srcRect[4].bottom = 75;
-	BackScreen->BltFast(195, 50, StopImage, &srcRect[4], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
-	
+	goStop[4].left = 230;
+	goStop[4].top = 5;
+	goStop[4].right = 275;
+	goStop[4].bottom = 75;
+
 	//8월 공산 새
-	srcRect[5].left = 275;
-	srcRect[5].top = 5;
-	srcRect[5].right = 320;
-	srcRect[5].bottom = 75;
-	BackScreen->BltFast(245, 50, StopImage, &srcRect[5], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[5].left = 275;
+	goStop[5].top = 5;
+	goStop[5].right = 320;
+	goStop[5].bottom = 75;
 
 	//7월 홍싸리 멧돼지
-	srcRect[6].left = 343;
-	srcRect[6].top = 5;
-	srcRect[6].right = 388;
-	srcRect[6].bottom = 75;
-	BackScreen->BltFast(295, 50, StopImage, &srcRect[6], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[6].left = 343;
+	goStop[6].top = 5;
+	goStop[6].right = 388;
+	goStop[6].bottom = 75;
 
 	//7월 홍싸리 초단
-	srcRect[7].left = 388;
-	srcRect[7].top = 5;
-	srcRect[7].right = 433;
-	srcRect[7].bottom = 75;
-	BackScreen->BltFast(345, 50, StopImage, &srcRect[7], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[7].left = 388;
+	goStop[7].top = 5;
+	goStop[7].right = 433;
+	goStop[7].bottom = 75;
 
 	//6월 모란 나비
-	srcRect[8].left = 5;
-	srcRect[8].top = 90;
-	srcRect[8].right = 50;
-	srcRect[8].bottom = 160;
-	BackScreen->BltFast(395, 50, StopImage, &srcRect[8], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[8].left = 5;
+	goStop[8].top = 90;
+	goStop[8].right = 50;
+	goStop[8].bottom = 160;
 
 	//6월 모란 청단
-	srcRect[9].left = 50;
-	srcRect[9].top = 90;
-	srcRect[9].right = 95;
-	srcRect[9].bottom = 160;
-	BackScreen->BltFast(445, 50, StopImage, &srcRect[9], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[9].left = 50;
+	goStop[9].top = 90;
+	goStop[9].right = 95;
+	goStop[9].bottom = 160;
 
 	//5월 난초 그림
-	srcRect[10].left = 117;
-	srcRect[10].top = 90;
-	srcRect[10].right = 162;
-	srcRect[10].bottom = 160;
-	BackScreen->BltFast(495, 50, StopImage, &srcRect[10], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[10].left = 117;
+	goStop[10].top = 90;
+	goStop[10].right = 162;
+	goStop[10].bottom = 160;
 
 	//5월 난초 초단
-	srcRect[11].left = 164;
-	srcRect[11].top = 90;
-	srcRect[11].right =207;
-	srcRect[11].bottom = 160;
-	BackScreen->BltFast(545, 50, StopImage, &srcRect[11], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[11].left = 164;
+	goStop[11].top = 90;
+	goStop[11].right = 207;
+	goStop[11].bottom = 160;
 
 	//4월 흑싸리 새
-	srcRect[12].left = 230;
-	srcRect[12].top = 90;
-	srcRect[12].right = 274;
-	srcRect[12].bottom = 160;
-	BackScreen->BltFast(595, 50, StopImage, &srcRect[12], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[12].left = 230;
+	goStop[12].top = 90;
+	goStop[12].right = 274;
+	goStop[12].bottom = 160;
 
 	//4월 흑싸리 초단
-	srcRect[13].left = 276;
-	srcRect[13].top = 90;
-	srcRect[13].right = 319;
-	srcRect[13].bottom = 160;
-	BackScreen->BltFast(645, 50, StopImage, &srcRect[13], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[13].left = 276;
+	goStop[13].top = 90;
+	goStop[13].right = 319;
+	goStop[13].bottom = 160;
 
 	//3월 벚꽃 광
-	srcRect[14].left = 342;
-	srcRect[14].top = 90;
-	srcRect[14].right = 385;
-	srcRect[14].bottom = 160;
-	BackScreen->BltFast(695, 50, StopImage, &srcRect[14], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[14].left = 342;
+	goStop[14].top = 90;
+	goStop[14].right = 385;
+	goStop[14].bottom = 160;
 
 	//3월 벚꽃 홍단
-	srcRect[15].left = 388;
-	srcRect[15].top = 90;
-	srcRect[15].right = 431;
-	srcRect[15].bottom = 160;
-	BackScreen->BltFast(745, 50, StopImage, &srcRect[15], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[15].left = 388;
+	goStop[15].top = 90;
+	goStop[15].right = 431;
+	goStop[15].bottom = 160;
 
 	//2월 매화 새
-	srcRect[16].left = 6;
-	srcRect[16].top = 176;
-	srcRect[16].right = 49;
-	srcRect[16].bottom = 242;
-	BackScreen->BltFast(795, 50, StopImage, &srcRect[16], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[16].left = 6;
+	goStop[16].top = 176;
+	goStop[16].right = 49;
+	goStop[16].bottom = 242;
 
 	//2월 매화 홍단
-	srcRect[17].left = 52;
-	srcRect[17].top = 176;
-	srcRect[17].right = 95;
-	srcRect[17].bottom = 242;
-	BackScreen->BltFast(845, 50, StopImage, &srcRect[17], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[17].left = 52;
+	goStop[17].top = 176;
+	goStop[17].right = 95;
+	goStop[17].bottom = 242;
 
 	//1월 소나무 광
-	srcRect[18].left = 119;
-	srcRect[18].top = 176;
-	srcRect[18].right = 161;
-	srcRect[18].bottom = 242;
-	BackScreen->BltFast(895, 50, StopImage, &srcRect[18], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[18].left = 119;
+	goStop[18].top = 176;
+	goStop[18].right = 161;
+	goStop[18].bottom = 242;
 
 	//1월 소나무 홍단
-	srcRect[19].left = 164;
-	srcRect[19].top = 176;
-	srcRect[19].right = 207;
-	srcRect[19].bottom = 242;
-	BackScreen->BltFast(945, 50, StopImage, &srcRect[19], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	goStop[19].left = 164;
+	goStop[19].top = 176;
+	goStop[19].right = 207;
+	goStop[19].bottom = 242;
 
 
+	//Random으로 한 장 뽑기!  사실 순서는 이미 srand에서 다 정해짐! 내 패!
+	myGoStopSize.left = 50;
+	myGoStopSize.right = myGoStopSize.left + 80;
+	myGoStopSize.top = 500;
+	myGoStopSize.bottom = myGoStopSize.top + 100;
+	BackScreen->Blt(&myGoStopSize, StopImage, &goStop[rand() % 20], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
-	srand(120);
-	BackScreen->BltFast(50, 200, StopImage, &srcRect[rand() % 20], DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	//Random으로 한 장 뽑기! 상대 패!
+
+	otherGoStopSize.left = 500;
+	otherGoStopSize.right = otherGoStopSize.left + 80;
+	otherGoStopSize.top = 500;
+	otherGoStopSize.bottom = otherGoStopSize.top + 100;
+	BackScreen->Blt(&otherGoStopSize, StopImage, &goStop[rand() % 20], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
+
+	//Nothing Button
+	ButtonRect.left = 0;
+	ButtonRect.top = 0;
+	ButtonRect.right = 154;
+	ButtonRect.bottom = 80;
+	BackScreen->BltFast(1000, 300, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	//밑장 빼기 Button
+	ButtonRect.left = 0;
+	ButtonRect.top = 94;
+	ButtonRect.right = 154;
+	ButtonRect.bottom = 174;
+	BackScreen->BltFast(1000, 400, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	//손 모가지 잡기 Button
+	ButtonRect.left = 0;
+	ButtonRect.top = 187;
+	ButtonRect.right = 154;
+	ButtonRect.bottom = 267;
+	BackScreen->BltFast(1000, 500, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	//~번째 경기
+	ButtonRect.left = 180;
+	ButtonRect.top = 0;
+	ButtonRect.right = 318;
+	ButtonRect.bottom = 40;
+	BackScreen->BltFast(100, 100, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	//족보 보기
+	ButtonRect.left = 318;
+	ButtonRect.top = 0;
+	ButtonRect.right = 441;
+	ButtonRect.bottom = 40;
+	BackScreen->BltFast(600, 100, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+	//내 금액 및 상대 금액
+	ButtonRect.left = 441;
+	ButtonRect.top = 0;
+	ButtonRect.right = 633;
+	ButtonRect.bottom = 69;
+	BackScreen->BltFast(1000, 100, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	//내 패 
+	ButtonRect.left = 180;
+	ButtonRect.top = 40;
+	ButtonRect.right = 255;
+	ButtonRect.bottom = 80;
+	BackScreen->BltFast(50, 400, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	//상대 패
+	ButtonRect.left = 180;
+	ButtonRect.top = 80;
+	ButtonRect.right = 304;
+	ButtonRect.bottom = 117;
+	BackScreen->BltFast(500, 400, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+
+
+	if (Click == true){
+		ZokBo.left = 0;
+		ZokBo.right = 857;
+		ZokBo.top = 0;
+		ZokBo.bottom = 960;
+		BackScreen->Blt(&ZokBoSize, ResourceImage[6], &ZokBo, DDBLT_WAIT, NULL);
+	}
+
 	
+	
+
 	if (FullScreen)
 		RealScreen->Flip(NULL, DDFLIP_WAIT);
 	else{
@@ -372,11 +433,20 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 	switch (message)
 	{
 	case WM_MOUSEMOVE:
-		//MouseX = LOWORD(lParam);
-		//MouseY = HIWORD(lParam);
+		MouseX = LOWORD(lParam);
+		MouseY = HIWORD(lParam);
 		break;
 
 	case WM_LBUTTONDOWN:
+		if (Click == false){
+			if (600 <= MouseX <= 723 && 70 <= MouseY <= 110)
+			{
+				Click = true;
+			}
+		}
+		else{
+			Click = false;
+		}
 		break;
 
 	case WM_DESTROY:
@@ -400,6 +470,7 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 
 		case VK_LEFT:
+			
 			return 0;
 
 		case VK_RIGHT:
@@ -452,7 +523,12 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ResourceImage[4] = DDLoadBitmap(DirectOBJ, "Sonmogazi.BMP", 0, 0);
 	DDSetColorKey(ResourceImage[4], RGB(0, 0, 0));
 
+	ResourceImage[5] = DDLoadBitmap(DirectOBJ, "Button.BMP", 0, 0);
+	DDSetColorKey(ResourceImage[5], RGB(0, 0, 0));
 
+	ResourceImage[6] = DDLoadBitmap(DirectOBJ, "ZokBo.BMP", 0, 0);
+	DDSetColorKey(ResourceImage[6], RGB(0, 0, 0));
+	
 	BackImage = DDLoadBitmap(DirectOBJ, "Back.BMP", 0, 0);
 	DDSetColorKey(BackImage, RGB(0, 0, 0));
 
