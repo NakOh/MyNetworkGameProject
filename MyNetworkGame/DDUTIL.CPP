@@ -6,26 +6,112 @@
 *  Content:    Routines for loading bitmap and palettes from resources
 *
 ***************************************************************************/
+#pragma warning(disable: 4996)
 #undef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>
 #include <stdio.h>
 #include <ddraw.h>
+
 #include "ddutil.h"
 
+int BmpXsize, BmpYsize;
 
 
-extern "C" IDirectDrawSurface *DDLoadBitmap(IDirectDraw *pdd, LPCTSTR szBitmap, int dx, int dy)
+FILE               *bmpFile;
+BITMAPFILEHEADER    bmpHeader;              //비트맵 화일 헤더
+LPBITMAPINFOHEADER  bmpInfoHeader;          //비트맵 정보 헤더
+LPBITMAPINFO        bmpInfo;                //비트맵 정보
+
+int                 colorNum;               //사용된 칼라수
+int                 widthX, widthY;          //이미지의  가로,세로 크기
+LPSTR               Data, Temp;
+int                 Fsize;
+
+extern HWND MainHwnd;
+extern int BPP;
+
+extern WORD RGB2(WORD r, WORD g, WORD b);
+
+extern "C" IDirectDrawSurface7 *_LoadImage(IDirectDraw7 *pdd, LPCTSTR strFilename, BOOL flag)
+{
+	if (BPP == 8) return NULL;
+
+	FILE *file;
+	int x, y;
+	long Size;
+
+	file = fopen((LPSTR)strFilename, "rb");
+	fread(&x, 4, 1, file);
+	fread(&y, 4, 1, file);
+	Size = (x * y * 2);
+	Data = (LPSTR)malloc(Size);
+	fread(Data, Size, 1, file);
+	fclose(file);
+
+	DDSURFACEDESC2       ddsd;
+	IDirectDrawSurface7 *pdds;
+
+	ZeroMemory(&ddsd, sizeof(ddsd));
+	ddsd.dwSize = sizeof(ddsd);
+	ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH;
+	ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
+	if (flag) ddsd.ddsCaps.dwCaps |= DDSCAPS_SYSTEMMEMORY;
+	ddsd.dwWidth = BmpXsize = x;
+	ddsd.dwHeight = BmpYsize = y;
+	if (pdd->CreateSurface(&ddsd, &pdds, NULL) != DD_OK) return NULL;
+
+	WORD *buffer;
+	HRESULT result;
+	ZeroMemory(&ddsd, sizeof(ddsd));
+	ddsd.dwSize = sizeof(ddsd);
+	result = pdds->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
+	if (result != DD_OK) return NULL;
+	buffer = (WORD *)ddsd.lpSurface;
+	memmove(buffer, Data, Size);
+	pdds->Unlock(NULL);
+	free(Data);
+
+	return pdds;
+}
+
+static void _Decode(void)
+{
+	int i;
+	unsigned char ch, data;
+	int x = 0, Size = 0;
+
+	while (1)
+	{
+		ch = Temp[x++];
+
+		if ((ch & 0xC0) == 0xC0)
+		{
+			data = Temp[x++];
+
+			for (i = 0; i < (ch & 0x3F); i++) Data[Size++] = data;
+		}
+		else Data[Size++] = ch;
+
+		if (x >= Fsize) break;
+	}
+}
+
+extern "C" IDirectDrawSurface7 * DDLoadBitmap(IDirectDraw7 *pdd, LPCTSTR szBitmap, int dx, int dy, BOOL flag)
 {
 	HBITMAP              hbm;
 	BITMAP               bm;
-	DDSURFACEDESC        ddsd;
-	IDirectDrawSurface  *pdds;
+	DDSURFACEDESC2       ddsd;
+	IDirectDrawSurface7 *pdds;
 
 	hbm = (HBITMAP)LoadImage(GetModuleHandle(NULL), szBitmap, IMAGE_BITMAP, dx, dy, LR_CREATEDIBSECTION);
-	if (hbm == NULL) hbm = (HBITMAP)LoadImage(NULL, szBitmap, IMAGE_BITMAP, dx, dy, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-	if (hbm == NULL) return NULL;
+
+	if (hbm == NULL)
+		hbm = (HBITMAP)LoadImage(NULL, szBitmap, IMAGE_BITMAP, dx, dy, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+
+	if (hbm == NULL)
+		return NULL;
 
 	GetObject(hbm, sizeof(bm), &bm);
 
@@ -33,21 +119,26 @@ extern "C" IDirectDrawSurface *DDLoadBitmap(IDirectDraw *pdd, LPCTSTR szBitmap, 
 	ddsd.dwSize = sizeof(ddsd);
 	ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH;
 	ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
+	if (flag) ddsd.ddsCaps.dwCaps |= DDSCAPS_SYSTEMMEMORY;
 	ddsd.dwWidth = bm.bmWidth;
 	ddsd.dwHeight = bm.bmHeight;
+	BmpXsize = bm.bmWidth;
+	BmpYsize = bm.bmHeight;
 
-	if (pdd->CreateSurface(&ddsd, &pdds, NULL) != DD_OK) return NULL;
+	if (pdd->CreateSurface(&ddsd, &pdds, NULL) != DD_OK)
+		return NULL;
 
 	DDCopyBitmap(pdds, hbm, 0, 0, 0, 0);
+
 	DeleteObject(hbm);
 
 	return pdds;
 }
 
-HRESULT DDReLoadBitmap(IDirectDrawSurface *pdds, LPCSTR szBitmap)
+HRESULT DDReLoadBitmap(IDirectDrawSurface7 * pdds, LPCSTR szBitmap)
 {
-	HBITMAP	hbm;
-	HRESULT hr;
+	HBITMAP                 hbm;
+	HRESULT                 hr;
 
 	hbm = (HBITMAP)LoadImage(GetModuleHandle(NULL), szBitmap, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
 
@@ -68,12 +159,12 @@ HRESULT DDReLoadBitmap(IDirectDrawSurface *pdds, LPCSTR szBitmap)
 	return hr;
 }
 
-extern "C" HRESULT DDCopyBitmap(IDirectDrawSurface *pdds, HBITMAP hbm, int x, int y, int dx, int dy)
+extern "C" HRESULT DDCopyBitmap(IDirectDrawSurface7 *pdds, HBITMAP hbm, int x, int y, int dx, int dy)
 {
 	HDC                 hdcImage;
 	HDC                 hdc;
 	BITMAP              bm;
-	DDSURFACEDESC       ddsd;
+	DDSURFACEDESC2      ddsd;
 	HRESULT             hr;
 
 	if (hbm == NULL || pdds == NULL) return E_FAIL;
@@ -106,85 +197,12 @@ extern "C" HRESULT DDCopyBitmap(IDirectDrawSurface *pdds, HBITMAP hbm, int x, in
 	return hr;
 }
 
-extern "C" IDirectDrawPalette *DDLoadPalette(IDirectDraw* pdd, LPCSTR szBitmap)
-{
-	IDirectDrawPalette     *ddpal;
-	int                     i;
-	int                     n;
-	int                     fh;
-	HRSRC                   h;
-	LPBITMAPINFOHEADER      lpbi;
-	PALETTEENTRY            ape[256];
-	RGBQUAD                *prgb;
-
-	for (i = 0; i < 256; i++)
-	{
-		ape[i].peRed = (BYTE)(((i >> 5) & 0x07) * 255 / 7);
-		ape[i].peGreen = (BYTE)(((i >> 2) & 0x07) * 255 / 7);
-		ape[i].peBlue = (BYTE)(((i >> 0) & 0x03) * 255 / 3);
-		ape[i].peFlags = (BYTE)0;
-	}
-
-	if (szBitmap && (h = FindResource(NULL, szBitmap, RT_BITMAP)))
-	{
-		lpbi = (LPBITMAPINFOHEADER)LockResource(LoadResource(NULL, h));
-		if (!lpbi)
-			OutputDebugString("lock resource failed\n");
-		prgb = (RGBQUAD *)((BYTE *)lpbi + lpbi->biSize);
-		if (lpbi == NULL || lpbi->biSize < sizeof(BITMAPINFOHEADER))
-			n = 0;
-		else if (lpbi->biBitCount > 8)
-			n = 0;
-		else if (lpbi->biClrUsed == 0)
-			n = 1 << lpbi->biBitCount;
-		else
-			n = lpbi->biClrUsed;
-
-		for (i = 0; i < n; i++)
-		{
-			ape[i].peRed = prgb[i].rgbRed;
-			ape[i].peGreen = prgb[i].rgbGreen;
-			ape[i].peBlue = prgb[i].rgbBlue;
-			ape[i].peFlags = 0;
-		}
-	}
-	else if (szBitmap && (fh = _lopen(szBitmap, OF_READ)) != -1)
-	{
-		BITMAPFILEHEADER        bf;
-		BITMAPINFOHEADER        bi;
-
-		_lread(fh, &bf, sizeof(bf));
-		_lread(fh, &bi, sizeof(bi));
-		_lread(fh, ape, sizeof(ape));
-		_lclose(fh);
-
-		if (bi.biSize != sizeof(BITMAPINFOHEADER))
-			n = 0;
-		else if (bi.biBitCount > 8)
-			n = 0;
-		else if (bi.biClrUsed == 0)
-			n = 1 << bi.biBitCount;
-		else
-			n = bi.biClrUsed;
-
-		for (i = 0; i < n; i++)
-		{
-			BYTE        r = ape[i].peRed;
-
-			ape[i].peRed = ape[i].peBlue;
-			ape[i].peBlue = r;
-		}
-	}
-	pdd->CreatePalette(DDPCAPS_8BIT, ape, &ddpal, NULL);
-	return ddpal;
-}
-
-extern "C" DWORD DDColorMatch(IDirectDrawSurface *pdds, COLORREF rgb)
+extern "C" DWORD DDColorMatch(IDirectDrawSurface7 *pdds, COLORREF rgb)
 {
 	COLORREF rgbT;
 	HDC hdc;
 	DWORD dw = CLR_INVALID;
-	DDSURFACEDESC ddsd;
+	DDSURFACEDESC2 ddsd;
 	HRESULT hres;
 
 	if (rgb != CLR_INVALID && pdds->GetDC(&hdc) == DD_OK)
@@ -212,9 +230,9 @@ extern "C" DWORD DDColorMatch(IDirectDrawSurface *pdds, COLORREF rgb)
 	return dw;
 }
 
-extern "C" HRESULT DDSetColorKey(IDirectDrawSurface *pdds, COLORREF rgb)
+extern "C" HRESULT DDSetColorKey(IDirectDrawSurface7 *pdds, COLORREF rgb)
 {
-	DDCOLORKEY ddck;
+	DDCOLORKEY          ddck;
 
 	ddck.dwColorSpaceLowValue = DDColorMatch(pdds, rgb);
 	ddck.dwColorSpaceHighValue = ddck.dwColorSpaceLowValue;
