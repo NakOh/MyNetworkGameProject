@@ -6,7 +6,7 @@
 #include <dsound.h>
 #include <stdio.h>
 
-
+#include "mmsystem.h"
 #include "dsutil.h"
 #include "ddutil.h"
 
@@ -29,7 +29,7 @@ DSBUFFERDESC        DSB_desc;
 HSNDOBJ Sound[10];
 
 int MouseX, MouseY;
-bool Click = false;
+bool ZokBoClick = false, NothingClick = false, SonmogaziClick = false, ZzangClick = false;
 
 //void CommInit(int argc, char **argv);
 //void CommSend();
@@ -210,7 +210,7 @@ void _GameProc(int FullScreen)
 	RECT	BackRect = { 0, 0, 1280, 720 };
 	RECT    ZokBoSize = { 0, 30, 1280, 700 };
 	RECT    myGoStopSize, otherGoStopSize;
-	RECT    ButtonRect, goStop[20], ZokBo;
+	RECT    ButtonRect, goStop[20], ZokBo, Nothing, Sonmogazi;
 
 
 	srand(120);
@@ -353,67 +353,82 @@ void _GameProc(int FullScreen)
 	BackScreen->Blt(&otherGoStopSize, StopImage, &goStop[rand() % 20], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
 
-	//Nothing Button
+	
+	//족보 보기 Button
 	ButtonRect.left = 0;
-	ButtonRect.top = 0;
-	ButtonRect.right = 154;
-	ButtonRect.bottom = 80;
-	BackScreen->BltFast(1000, 300, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	ButtonRect.top = 1;
+	ButtonRect.right = 680;
+	ButtonRect.bottom = 314;
+	BackScreen->BltFast(600, 100, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
 	//밑장 빼기 Button
 	ButtonRect.left = 0;
-	ButtonRect.top = 94;
-	ButtonRect.right = 154;
-	ButtonRect.bottom = 174;
+	ButtonRect.top = 313;
+	ButtonRect.right = 680;
+	ButtonRect.bottom = 625;
 	BackScreen->BltFast(1000, 400, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	//Nothing Button
+	ButtonRect.left = 0;
+	ButtonRect.top = 625;
+	ButtonRect.right = 680;
+	ButtonRect.bottom = 932;
+	BackScreen->BltFast(1000, 300, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
 	//손 모가지 잡기 Button
 	ButtonRect.left = 0;
-	ButtonRect.top = 187;
-	ButtonRect.right = 154;
-	ButtonRect.bottom = 267;
+	ButtonRect.top = 934;
+	ButtonRect.right = 680;
+	ButtonRect.bottom = 1243;
 	BackScreen->BltFast(1000, 500, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	
+	
 	//~번째 경기
 	ButtonRect.left = 180;
 	ButtonRect.top = 0;
 	ButtonRect.right = 318;
 	ButtonRect.bottom = 40;
-	BackScreen->BltFast(100, 100, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
-	//족보 보기
-	ButtonRect.left = 318;
-	ButtonRect.top = 0;
-	ButtonRect.right = 441;
-	ButtonRect.bottom = 40;
-	BackScreen->BltFast(600, 100, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
-
+	BackScreen->BltFast(100, 100, ResourceImage[7], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
 	//내 금액 및 상대 금액
 	ButtonRect.left = 441;
-	ButtonRect.top = 0;
+	ButtonRect.top = 311;
 	ButtonRect.right = 633;
 	ButtonRect.bottom = 69;
-	BackScreen->BltFast(1000, 100, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	BackScreen->BltFast(1000, 100, ResourceImage[7], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
 	//내 패 
 	ButtonRect.left = 180;
 	ButtonRect.top = 40;
 	ButtonRect.right = 255;
 	ButtonRect.bottom = 80;
-	BackScreen->BltFast(50, 400, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	BackScreen->BltFast(50, 400, ResourceImage[7], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
 	//상대 패
 	ButtonRect.left = 180;
 	ButtonRect.top = 80;
 	ButtonRect.right = 304;
 	ButtonRect.bottom = 117;
-	BackScreen->BltFast(500, 400, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	BackScreen->BltFast(500, 400, ResourceImage[7], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
 
 
-	if (Click == true){
+	if (ZokBoClick == true){
 		ZokBo.left = 0;
 		ZokBo.right = 857;
 		ZokBo.top = 0;
 		ZokBo.bottom = 960;
 		BackScreen->Blt(&ZokBoSize, ResourceImage[6], &ZokBo, DDBLT_WAIT, NULL);
-	}
-
-	
-	
+		//PlaySound("Select2.wav", NULL, SND_FILENAME | SND_ASYNC);
+	} 
+	if (NothingClick == true){
+		Nothing.left = 0;
+		Nothing.right = 800;
+		Nothing.bottom = 533;
+		Nothing.top = 0;
+		BackScreen->Blt(&ZokBoSize, ResourceImage[0], &Nothing, DDBLT_WAIT, NULL);
+		//PlaySound("Select1.wav", NULL, SND_FILENAME | SND_ASYNC);
+		}
+	if (SonmogaziClick == true){
+		Sonmogazi.left = 0;
+		Sonmogazi.right = 640;
+		Sonmogazi.top = 0;
+		Sonmogazi.bottom = 360;			
+		BackScreen->Blt(&ZokBoSize, ResourceImage[4], &Sonmogazi, DDBLT_WAIT, NULL);		
+	}	
 
 	if (FullScreen)
 		RealScreen->Flip(NULL, DDFLIP_WAIT);
@@ -437,31 +452,53 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		break;
 
 	case WM_LBUTTONDOWN:
-		if (Click == false){
-			//족보 버튼
+
+		//족보 버튼
+		if (ZokBoClick == false){
 			if (600 <= MouseX && MouseX<= 723 && 70 <= MouseY && MouseY <= 110)
 			{
-				Click = true;
-			}
-			//아무것도 하지 않는다 버튼
-			if (1000 <= MouseX && MouseX <= 1154 && 300 <= MouseY && MouseY <= 380)
-			{
-				Click = true;
-			}
-			//밑 장 버튼
-			if (1000 <= MouseX && MouseX <= 1154 && 400 <= MouseY && MouseY <= 480)
-			{
-				Click = true;
-			}
-
-			//손 모가지 버튼
-			if (1000 <= MouseX && MouseX <= 1154 && 500 <= MouseY && MouseY <= 580)
-			{
-				Click = true;
+				ZokBoClick = true;
 			}
 		}
 		else{
-			Click = false;
+			ZokBoClick = false;
+		}
+
+		//아무것도 하지 않는다 버튼
+		if (NothingClick == false){
+			if (1000 <= MouseX && MouseX <= 1154 && 274 <= MouseY && MouseY <= 345)
+			{				
+				NothingClick = true;				
+			}
+		}
+		else{
+			NothingClick = false;
+		}
+
+		//밑 장 버튼
+		if (ZzangClick == false){
+			if (1000 <= MouseX && MouseX <= 1154 && 370 <= MouseY && MouseY <= 447)
+			{
+				ZzangClick = true;
+			}
+		}
+		else{
+			ZzangClick = false;
+		}
+
+		//손 모가지 버튼
+		if (SonmogaziClick == false){
+			if (1000 <= MouseX && MouseX <= 1154 && 470 <= MouseY && MouseY <= 580)
+			{					
+
+				PlaySound("Select2.wav", NULL, SND_FILENAME | SND_ASYNC);
+				SonmogaziClick = true;
+			}
+		}
+		else{
+			PlaySound("OST.wav", NULL, SND_FILENAME | SND_ASYNC);
+			SonmogaziClick = false;
+
 		}
 		break;
 
@@ -544,26 +581,32 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	ResourceImage[6] = DDLoadBitmap(DirectOBJ, "ZokBo.BMP", 0, 0);
 	DDSetColorKey(ResourceImage[6], RGB(0, 0, 0));
+
+	ResourceImage[7] = DDLoadBitmap(DirectOBJ, "Texts.BMP", 0, 0);
+	DDSetColorKey(ResourceImage[7], RGB(0, 0, 0));
 	
 	BackImage = DDLoadBitmap(DirectOBJ, "Back.BMP", 0, 0);
 	DDSetColorKey(BackImage, RGB(0, 0, 0));
 
 	if (_InitDirectSound())
 	{
-		Sound[0] = SndObjCreate(SoundOBJ, "OST.mp3", 1);
-		Sound[1] = SndObjCreate(SoundOBJ, "Select2.mp3", 1);
-		Sound[2] = SndObjCreate(SoundOBJ, "Select3.mp3", 1);
+		Sound[0] = SndObjCreate(SoundOBJ, "OST.WAV", 1);
+	    Sound[1] = SndObjCreate(SoundOBJ, "Select2.WAV", 1);
+		Sound[2] = SndObjCreate(SoundOBJ, "Select3.WAV", 1);
+		//Sound[3] = SndObjCreate(SoundOBJ, "Check.WAV", 1);
+		//Sound[3] = SndObjCreate(SoundOBJ, "Start.WAV", 1);
+		PlaySound("OST.wav", NULL, SND_FILENAME | SND_ASYNC);
 	}
 
 	SetTimer(MainHwnd, 1, 10, NULL);
 
 
 	// Main message loop
+
 	while (GetMessage(&msg, NULL, 0, 0)){
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-
 
 	DestroyWindow(MainHwnd);
 
