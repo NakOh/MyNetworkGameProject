@@ -1,221 +1,41 @@
+#pragma warning(disable: 4996)
 #include <windows.h>
-#include <time.h>
 #include <windowsx.h>
-#include <math.h>
+#include <time.h>
 #include <ddraw.h>
 #include <dsound.h>
 #include <stdio.h>
 
-#include "mmsystem.h"
 #include "dsutil.h"
 #include "ddutil.h"
+#include "extern.h"
+#include "data.h"
 
-long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+bool gam = false;
 
-HWND MainHwnd;
-
-LPDIRECTDRAW         DirectOBJ;
-LPDIRECTDRAWSURFACE  RealScreen;
-LPDIRECTDRAWSURFACE  BackScreen;
-LPDIRECTDRAWCLIPPER	 ClipScreen;
-
-LPDIRECTDRAWSURFACE  StopImage;
-LPDIRECTDRAWSURFACE  ResourceImage[10];
-LPDIRECTDRAWSURFACE  BackImage;
-
-LPDIRECTSOUND       SoundOBJ = NULL;
-LPDIRECTSOUNDBUFFER SoundDSB = NULL;
-DSBUFFERDESC        DSB_desc;
-HSNDOBJ Sound[10];
-
-int MouseX, MouseY;
-bool ZokBoClick = false, NothingClick = false, SonmogaziClick = false, ZzangClick = false;
-
+int CheckResult(int a1, int a2);
+BOOL LeftButton, RightButton;
+bool ZokBoClick = false;
+bool NothingClick = false;
+bool ZzangClick = false;
+bool SonmogaziClick = false;
+int myFirstPae, mySecondPae;
+int yourFirstPae, yourSecondPae;
+MSG msg;
 //void CommInit(int argc, char **argv);
 //void CommSend();
 //////////////////////////////////////////////////////////////////////////////////
-
-
-BOOL _InitDirectSound(void)
-{
-	if (DirectSoundCreate(NULL, &SoundOBJ, NULL) == DS_OK)
-	{
-		if (SoundOBJ->SetCooperativeLevel(MainHwnd, DSSCL_PRIORITY) != DS_OK) return FALSE;
-
-		memset(&DSB_desc, 0, sizeof(DSBUFFERDESC));
-		DSB_desc.dwSize = sizeof(DSBUFFERDESC);
-		DSB_desc.dwFlags = DSBCAPS_PRIMARYBUFFER;
-
-		if (SoundOBJ->CreateSoundBuffer(&DSB_desc, &SoundDSB, NULL) != DS_OK) return FALSE;
-		SoundDSB->SetVolume(0);
-		SoundDSB->SetPan(0);
-		return TRUE;
-	}
-	return FALSE;
-}
-
-
-BOOL Fail(HWND hwnd, char *Output)
-{
-	ShowWindow(hwnd, SW_HIDE);
-	MessageBox(hwnd, Output, "Game Programming", MB_OK);
-	DestroyWindow(hwnd);
-	return FALSE;
-}
-
-void _ReleaseAll(void)
-{
-	if (DirectOBJ != NULL)
-	{
-
-		if (BackScreen != NULL)
-		{
-			BackScreen->Release();
-			BackScreen = NULL;
-		}
-		if (RealScreen != NULL)
-		{
-			RealScreen->Release();
-			RealScreen = NULL;
-		}
-		if (StopImage != NULL)
-		{
-			StopImage->Release();
-			StopImage = NULL;
-		}
-		for (int i = 0; i < 5; i++)
-		{
-		if (ResourceImage[i] != NULL)
-			{
-				ResourceImage[i]->Release();
-				ResourceImage[i] = NULL;
-			}
-		}
-
-		DirectOBJ->Release();
-		DirectOBJ = NULL;
-	}
-}
-
-
-BOOL _GameMode(HINSTANCE hInstance, int nCmdShow, DWORD  x, DWORD  y, DWORD  bpp, int FullScreen)
-{
-	WNDCLASS wc;
-	DDSURFACEDESC ddsd;
-	DDSCAPS ddscaps;
-	LPDIRECTDRAW pdd;
-
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-	wc.lpfnWndProc = WindowProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInstance;
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = GetStockBrush(BLACK_BRUSH);
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = "GameProg";
-	RegisterClass(&wc);
-
-	if (FullScreen){
-		MainHwnd = CreateWindowEx(
-			0, "GameProg", NULL, WS_POPUP, 0, 0,
-			GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN),
-			NULL, NULL, hInstance, NULL);
-	}
-	else{
-		MainHwnd = CreateWindow("GameProg", "WindowMode",
-			WS_OVERLAPPEDWINDOW, 0, 0, x, y, NULL, NULL, hInstance, NULL);
-	}
-	if (!MainHwnd) return FALSE;
-
-
-	// 다이렉트 드로우(DD) 생성
-	if (FAILED(DirectDrawCreate(NULL, &pdd, NULL)))
-		return Fail(MainHwnd, "DirectDrawCreate");
-	// DD에 연결
-	if (FAILED(pdd->QueryInterface(IID_IDirectDraw, (LPVOID *)&DirectOBJ)))
-		return Fail(MainHwnd, "QueryInterface");
-
-	// 윈도우 핸들의 협력 단계를 설정한다.
-	if (FullScreen){
-		if (FAILED(DirectOBJ->SetCooperativeLevel(MainHwnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN)))
-			return Fail(MainHwnd, "SetCooperativeLevel");
-		// Set full screen display mode
-		if (FAILED(DirectOBJ->SetDisplayMode(x, y, bpp)))
-			return Fail(MainHwnd, "SetDisplayMode");
-
-		memset(&ddsd, 0, sizeof(ddsd));
-		ddsd.dwSize = sizeof(ddsd);
-		ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
-		ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
-		ddsd.dwBackBufferCount = 1;
-		if (FAILED(DirectOBJ->CreateSurface(&ddsd, &RealScreen, NULL)))
-			return Fail(MainHwnd, "CreateSurface");
-
-		memset(&ddscaps, 0, sizeof(ddscaps));
-		ddscaps.dwCaps = DDSCAPS_BACKBUFFER;
-		if (FAILED(RealScreen->GetAttachedSurface(&ddscaps, &BackScreen)))
-			return Fail(MainHwnd, "GetAttachedSurface");
-	}
-	else{
-		if (FAILED(DirectOBJ->SetCooperativeLevel(MainHwnd, DDSCL_NORMAL)))
-			return Fail(MainHwnd, "SetCooperativeLevel");
-
-		memset(&ddsd, 0, sizeof(ddsd));
-		ddsd.dwSize = sizeof(ddsd);
-		ddsd.dwFlags = DDSD_CAPS;
-		ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
-		ddsd.dwBackBufferCount = 0;
-		if (FAILED(DirectOBJ->CreateSurface(&ddsd, &RealScreen, NULL)))
-			return Fail(MainHwnd, "CreateSurface");
-
-		memset(&ddsd, 0, sizeof(ddsd));
-		ddsd.dwSize = sizeof(ddsd);
-		ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH;
-		ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
-		ddsd.dwWidth = x;
-		ddsd.dwHeight = y;
-		if (FAILED(DirectOBJ->CreateSurface(&ddsd, &BackScreen, NULL)))
-			return Fail(MainHwnd, "CreateSurface");
-
-		if (FAILED(DirectOBJ->CreateClipper(0, &ClipScreen, NULL)))
-			return Fail(MainHwnd, "CreateClipper");
-
-		if (FAILED(ClipScreen->SetHWnd(0, MainHwnd)))
-			return Fail(MainHwnd, "SetHWnd");
-
-		if (FAILED(RealScreen->SetClipper(ClipScreen)))
-			return Fail(MainHwnd, "SetClipper");
-
-		SetWindowPos(MainHwnd, NULL, 0, 0, x, y, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
-	}
-
-	SetFocus(MainHwnd);
-	ShowWindow(MainHwnd, nCmdShow);
-	UpdateWindow(MainHwnd);
-	ShowCursor(TRUE);
-
-	return TRUE;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////// Implmentation Here
-
-
-
-
 void _GameProc(int FullScreen)
 {
+
+
 	RECT	BackRect = { 0, 0, 1280, 720 };
 	RECT    ZokBoSize = { 0, 30, 1280, 700 };
 	RECT    myGoStopSize, otherGoStopSize;
 	RECT    ButtonRect, goStop[20], ZokBo, Nothing, Sonmogazi;
 
-
-	srand(120);
 	// BackGround
-	BackScreen->BltFast(0, 0, BackImage, &BackRect, NULL);
+	BackScreen->BltFast(0, 0, ResourceImage[9], &BackRect, NULL);
 
 	// 10월 단풍 사슴
 	goStop[0].left = 5;
@@ -343,67 +163,131 @@ void _GameProc(int FullScreen)
 	myGoStopSize.right = myGoStopSize.left + 80;
 	myGoStopSize.top = 500;
 	myGoStopSize.bottom = myGoStopSize.top + 100;
-	BackScreen->Blt(&myGoStopSize, StopImage, &goStop[rand() % 20], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+	BackScreen->Blt(&myGoStopSize, ResourceImage[8], &goStop[myFirstPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
 	//Random으로 한 장 뽑기! 상대 패!
 	otherGoStopSize.left = 500;
 	otherGoStopSize.right = otherGoStopSize.left + 80;
 	otherGoStopSize.top = 500;
 	otherGoStopSize.bottom = otherGoStopSize.top + 100;
-	BackScreen->Blt(&otherGoStopSize, StopImage, &goStop[rand() % 20], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+	BackScreen->Blt(&otherGoStopSize, ResourceImage[8], &goStop[yourFirstPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
+	if (NothingClick==true || SonmogaziClick == true || ZzangClick == true){
+		mySecondPae = random();
+		while (mySecondPae == myFirstPae || mySecondPae == yourFirstPae){			
+				mySecondPae = random();		
+		}
+		yourSecondPae = random();
+		while (yourSecondPae == myFirstPae || yourSecondPae == yourFirstPae || yourSecondPae == mySecondPae){
+			yourSecondPae = random();
+		}
+		CheckResult(myFirstPae,mySecondPae);
+	}
+
+	RECT ButtonLocation;
 
 
-	
 	//족보 보기 Button
+
+	ButtonLocation.left = 600;
+	ButtonLocation.right = 723;
+	ButtonLocation.top = 70;
+	ButtonLocation.bottom = 110;
+
 	ButtonRect.left = 0;
+	ButtonRect.right = 680;
 	ButtonRect.top = 1;
-	ButtonRect.right = 680;
 	ButtonRect.bottom = 314;
-	BackScreen->BltFast(600, 100, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	BackScreen->Blt(&ButtonLocation, ResourceImage[5], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
 	//밑장 빼기 Button
+
+	ButtonLocation.left = 1000;
+	ButtonLocation.right = 1154;
+	ButtonLocation.top = 370;
+	ButtonLocation.bottom = 447;
+
 	ButtonRect.left = 0;
-	ButtonRect.top = 313;
 	ButtonRect.right = 680;
+	ButtonRect.top = 313;
 	ButtonRect.bottom = 625;
-	BackScreen->BltFast(1000, 400, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	BackScreen->Blt(&ButtonLocation, ResourceImage[5], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
 	//Nothing Button
+
+	ButtonLocation.left = 1000;
+	ButtonLocation.right = 1154;
+	ButtonLocation.top = 274;
+	ButtonLocation.bottom = 345;
+
 	ButtonRect.left = 0;
 	ButtonRect.top = 625;
 	ButtonRect.right = 680;
 	ButtonRect.bottom = 932;
-	BackScreen->BltFast(1000, 300, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	BackScreen->Blt(&ButtonLocation, ResourceImage[5], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
+
 	//손 모가지 잡기 Button
+	ButtonLocation.left = 1000;
+	ButtonLocation.right = 1154;
+	ButtonLocation.top = 470;
+	ButtonLocation.bottom = 580;
+
 	ButtonRect.left = 0;
 	ButtonRect.top = 934;
 	ButtonRect.right = 680;
 	ButtonRect.bottom = 1243;
-	BackScreen->BltFast(1000, 500, ResourceImage[5], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	BackScreen->Blt(&ButtonLocation, ResourceImage[5], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 	
-	
-	//~번째 경기
-	ButtonRect.left = 180;
-	ButtonRect.top = 0;
-	ButtonRect.right = 318;
-	ButtonRect.bottom = 40;
-	BackScreen->BltFast(100, 100, ResourceImage[7], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
-	//내 금액 및 상대 금액
-	ButtonRect.left = 441;
-	ButtonRect.top = 311;
-	ButtonRect.right = 633;
-	ButtonRect.bottom = 69;
-	BackScreen->BltFast(1000, 100, ResourceImage[7], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	RECT TextLocation;
 	//내 패 
-	ButtonRect.left = 180;
-	ButtonRect.top = 40;
-	ButtonRect.right = 255;
-	ButtonRect.bottom = 80;
-	BackScreen->BltFast(50, 400, ResourceImage[7], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	TextLocation.left = 50;
+	TextLocation.right = 170;
+	TextLocation.top = 400;
+	TextLocation.bottom = 440;
+
+	ButtonRect.left = 0;
+	ButtonRect.top = 0;
+	ButtonRect.right = 730;
+	ButtonRect.bottom = 360;
+
+	BackScreen->Blt(&TextLocation, ResourceImage[7], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+	//~번째 판
+	TextLocation.left = 100;
+	TextLocation.right = 220;
+	TextLocation.top = 100;
+	TextLocation.bottom = 170;
+
+	ButtonRect.left = 730;
+	ButtonRect.top = 0;
+	ButtonRect.right = 1460;
+	ButtonRect.bottom = 360;
+	BackScreen->Blt(&TextLocation, ResourceImage[7], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
 	//상대 패
-	ButtonRect.left = 180;
-	ButtonRect.top = 80;
-	ButtonRect.right = 304;
-	ButtonRect.bottom = 117;
-	BackScreen->BltFast(500, 400, ResourceImage[7], &ButtonRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
+	TextLocation.left = 500;
+	TextLocation.right = 620;
+	TextLocation.top = 400;
+	TextLocation.bottom = 440;
+
+	ButtonRect.left = 0;
+	ButtonRect.top = 360;
+	ButtonRect.right = 730;
+	ButtonRect.bottom = 724;
+	BackScreen->Blt(&TextLocation, ResourceImage[7], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
+	//내 금액 및 상대 금액
+	TextLocation.left = 950;
+	TextLocation.right = 1200;
+	TextLocation.top = 100;
+	TextLocation.bottom = 200;
+
+	ButtonRect.left = 0;
+	ButtonRect.top = 724;
+	ButtonRect.right = 1460;
+	ButtonRect.bottom = 1083;
+
+	BackScreen->Blt(&TextLocation, ResourceImage[7], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
 
 	if (ZokBoClick == true){
@@ -412,24 +296,28 @@ void _GameProc(int FullScreen)
 		ZokBo.top = 0;
 		ZokBo.bottom = 960;
 		BackScreen->Blt(&ZokBoSize, ResourceImage[6], &ZokBo, DDBLT_WAIT, NULL);
-		//PlaySound("Select2.wav", NULL, SND_FILENAME | SND_ASYNC);
-	} 
+	}
+		
 	if (NothingClick == true){
-		Nothing.left = 0;
-		Nothing.right = 800;
-		Nothing.bottom = 533;
-		Nothing.top = 0;
-		BackScreen->Blt(&ZokBoSize, ResourceImage[0], &Nothing, DDBLT_WAIT, NULL);
-		//PlaySound("Select1.wav", NULL, SND_FILENAME | SND_ASYNC);
+			Nothing.left = 0;
+			Nothing.right = 800;
+			Nothing.bottom = 533;
+			Nothing.top = 0;
+			BackScreen->Blt(&ZokBoSize, ResourceImage[0], &Nothing, DDBLT_WAIT, NULL);
 		}
-	if (SonmogaziClick == true){
-		Sonmogazi.left = 0;
-		Sonmogazi.right = 640;
-		Sonmogazi.top = 0;
-		Sonmogazi.bottom = 360;			
-		BackScreen->Blt(&ZokBoSize, ResourceImage[4], &Sonmogazi, DDBLT_WAIT, NULL);		
-	}	
 
+	if (SonmogaziClick == true){
+			Sonmogazi.left = 0;
+			Sonmogazi.right = 640;
+			Sonmogazi.top = 0;
+			Sonmogazi.bottom = 360;
+			BackScreen->Blt(&ZokBoSize, ResourceImage[4], &Sonmogazi, DDBLT_WAIT, NULL);
+		}
+
+		if (ZzangClick == true){
+
+		}
+	
 	if (FullScreen)
 		RealScreen->Flip(NULL, DDFLIP_WAIT);
 	else{
@@ -442,20 +330,178 @@ void _GameProc(int FullScreen)
 
 }
 
+//족보 로직을 확인한다.
+bool win;
+int  CheckResult(int a1,int a2){
+	//38 광땡
+	if (a1 == 14 && a2 == 4)
+		return 100;
+	//광땡 1+3월
+	if (a1 == 18 && a2 == 14)
+		return 99;
+	//광땡 1+8월
+	if (a1 == 18 && a2 == 4)
+		return 99;
+	//장땡 (10월)
+	if (a1 == 0 && a2 == 1)
+		return 98;
+	//9월 땡
+	if (a1 == 2 && a2 == 3)
+		return 97;
+	//8월땡
+	if (a1 == 4 && a2 == 5)
+		return 96;
+	//7월땡
+	if (a1 == 6 && a2 == 7)
+		return 95;
+	//6월땡
+	if (a1 == 8 && a2 == 9)
+		return 94;
+	//5월땡
+	if (a1 == 10 && a2 == 11)
+		return 93;
+	//4월땡
+	if (a1 == 12 && a2 == 13)
+		return 92;
+	//3월땡
+	if (a1 == 14 && a2 == 15)
+		return 91;
+	//2월땡
+	if (a1 == 16 && a2 == 17)
+		return 90;
+	//뺑땡 (1월)
+	if (a1 == 18 && a2 == 19)
+		return 89;
+	//알리 (1월 + 2월)
+	if (a1 == 18 && a2 == 16)
+		return 88;
+	if (a1 == 18 && a2 == 17)
+		return 88;
+	if (a1 == 19 && a2 == 16)
+		return 88;
+	if (a1 == 19 && a2 == 17)
+		return 88;
+	//독사 (1월 + 4월)
+	if (a1 == 18 && a2 == 12)
+		return 87;
+	if (a1 == 18 && a2 == 13)
+		return 87;
+	if (a1 == 19 && a2 == 12)
+		return 87;
+	if (a1 == 19 && a2 == 13)
+		return 87;
+	//구삥 (1월 + 9월)
+	if (a1 == 18 && a2 == 2)
+		return 86;
+	if (a1 == 18 && a2 == 3)
+		return 86;
+	if (a1 == 19 && a2 == 2)
+		return 86;
+	if (a1 == 19 && a2 == 3)
+		return 86;
+	//장삥 (1월 + 10월)
+	if (a1 == 18 && a2 == 0)
+		return 85;
+	if (a1 == 18 && a2 == 1)
+		return 85;
+	if (a1 == 19 && a2 == 0)
+		return 85;
+	if (a1 == 19 && a2 == 1)
+		return 85;
+	//장사 (4월 + 10월)
+	if (a1 == 12 && a2 == 0)
+		return 84;
+	if (a1 == 12 && a2 == 1)
+		return 84;
+	if (a1 == 13 && a2 == 0)
+		return 84;
+	if (a1 == 13 && a2 == 1)
+		return 84;
+	//세륙 (4월 + 6월)
+	if (a1 == 12 && a2 == 8)
+		return 83;
+	if (a1 == 12 && a2 == 9)
+		return 83;
+	if (a1 == 13 && a2 == 8)
+		return 83;
+	if (a1 == 13 && a2 == 9)
+		return 83;
+	//갑오 (두 장의 합한 수의 끝자리 수가 9인 경우)(1,8)(2,7)(3,6)(4,5)
+	if (a1 == 18 && a2 == 4)
+		return 82;
+	if (a1 == 18 && a2 == 5)
+		return 82;
+	if (a1 == 19 && a2 == 4)
+		return 82;
+	if (a1 == 19 && a2 == 5)
+		return 82;
+
+	if (a1 == 16 && a2 == 6)
+		return 82;
+	if (a1 == 16 && a2 == 7)
+		return 82;
+	if (a1 == 17 && a2 == 6)
+		return 82;
+	if (a1 == 17 && a2 == 7)
+		return 82;
+
+	if (a1 == 14 && a2 == 8)
+		return 82;
+	if (a1 == 14 && a2 == 9)
+		return 82;
+	if (a1 == 15 && a2 == 8)
+		return 82;
+	if (a1 == 15 && a2 == 9)
+		return 82;
+
+	if (a1 == 12 && a2 == 10)
+		return 82;
+	if (a1 == 12 && a2 == 11)
+		return 82;
+	if (a1 == 13 && a2 == 10)
+		return 82;
+	if (a1 == 13 && a2 == 11)
+		return 82;
+	//8끗 (1,7)(2,6)(3,5)(10,8)
+	//7끗 (1,6)(2,5)(3,4)(10,7)
+	//6끗 (1,5)(2,4)(10,6)
+	//5끗 (2,3)(10,5)
+	//4끗 (1,3)(광끼리 만나는건 제외) (5,9)
+	//3끗 (10,3)(5,8)
+	//2끗 (10,2)(5,7)
+	//1끗 (5,6)
+
+	//망통 (2월 + 8월)
+	if (a1 == 16 && a2 == 4)
+		return 80;
+	if (a1 == 16 && a2 == 5)
+		return 80;
+	if (a1 == 17 && a2 == 4)
+		return 80; 
+	if (a1 == 17 && a2 == 5)
+		return 80;
+	//특수 족보 고려 안함(전부 망통 처리)
+	return 80;
+
+
+}
+
+//일단은 버튼 먹을 때
 long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
-	case WM_MOUSEMOVE:
-		MouseX = LOWORD(lParam);
+	case	WM_ACTIVATEAPP : Act = wParam;
+		if (Act && gam){
+			_ScreenMode(SCREEN_X, SCREEN_Y, BPP, FULL_SCREEN);
+			_CopyScreen(false);
+		}
+	case    WM_MOUSEMOVE:   MouseX = LOWORD(lParam);
 		MouseY = HIWORD(lParam);
 		break;
-
-	case WM_LBUTTONDOWN:
-
-		//족보 버튼
+	case	WM_LBUTTONDOWN:	LeftButton = TRUE; 
 		if (ZokBoClick == false){
-			if (600 <= MouseX && MouseX<= 723 && 70 <= MouseY && MouseY <= 110)
+			if (600 <= MouseX && MouseX <= 723 && 40 <= MouseY && MouseY <= 78)
 			{
 				ZokBoClick = true;
 			}
@@ -466,9 +512,9 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 		//아무것도 하지 않는다 버튼
 		if (NothingClick == false){
-			if (1000 <= MouseX && MouseX <= 1154 && 274 <= MouseY && MouseY <= 345)
-			{				
-				NothingClick = true;				
+			if (1000 <= MouseX && MouseX <= 1154 && 250 <= MouseY && MouseY <= 310)
+			{
+				NothingClick = true;
 			}
 		}
 		else{
@@ -477,7 +523,7 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 		//밑 장 버튼
 		if (ZzangClick == false){
-			if (1000 <= MouseX && MouseX <= 1154 && 370 <= MouseY && MouseY <= 447)
+			if (1000 <= MouseX && MouseX <= 1154 && 342 <= MouseY && MouseY <= 410)
 			{
 				ZzangClick = true;
 			}
@@ -488,121 +534,98 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 		//손 모가지 버튼
 		if (SonmogaziClick == false){
-			if (1000 <= MouseX && MouseX <= 1154 && 470 <= MouseY && MouseY <= 580)
-			{					
-
-				PlaySound("Select2.wav", NULL, SND_FILENAME | SND_ASYNC);
+			if (1000 <= MouseX && MouseX <= 1154 && 447 <= MouseY && MouseY <= 540)
+			{			
+				PlaySound("Sound//밑장빼기.WAV", NULL, SND_ASYNC);
 				SonmogaziClick = true;
 			}
 		}
 		else{
-			PlaySound("OST.wav", NULL, SND_FILENAME | SND_ASYNC);
+			PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
 			SonmogaziClick = false;
 
 		}
 		break;
+	case	WM_LBUTTONUP:	
+		break;
+	case	WM_RBUTTONDOWN:	RightButton = TRUE;
+		break;
+	case	WM_RBUTTONUP:	RightButton = FALSE;
+		break;
 
-	case WM_DESTROY:
-		_ReleaseAll();
+	case    WM_DESTROY:  _WindowMode();
 		PostQuitMessage(0);
 		break;
-
 	case WM_TIMER:
 		//	CommSend();
-			_GameProc(0);
-		
+			_GameProc(0);		
 		break;
-
-	case WM_KEYDOWN:
-		switch (wParam)
-		{
-		case VK_ESCAPE:
-		case VK_F12:
-			PostMessage(hWnd, WM_CLOSE, 0, 0);
-			return 0;
-
-
-		case VK_LEFT:
-			
-			return 0;
-
-		case VK_RIGHT:
-			return 0;
-
-		case VK_UP:
-			return 0;
-
-		case VK_DOWN:
-			return 0;
-
-
-		case VK_SPACE:
-			break;
-
-		case VK_CONTROL:
-			break;
-		}
-		break;
-
 	}
-
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
+
 
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	MSG msg;
 
-	if (!_GameMode(hInstance, nCmdShow, 1280, 720, 32, 0)) return FALSE;
+	if (!_GameMode(hInstance, nCmdShow, 1280, 720, 32, false)) return FALSE;
+	//한글 사용 초기화
+	InitXddFont("HANGUL.FNT", "ENGLISH.FNT");
+	SetFontPattern(NORMAL_PATTERN);
 
-	//CommInit(NULL, NULL);
 
-	
-	StopImage = DDLoadBitmap(DirectOBJ, "Stop.BMP", 0, 0);
-	DDSetColorKey(StopImage, RGB(0, 0, 0));
+	//CommInit(NULL, NULL);	
 
-	ResourceImage[0] = DDLoadBitmap(DirectOBJ, "First.BMP", 0, 0);
-	DDSetColorKey(ResourceImage[0], RGB(0, 0, 0));
+	//그래픽 초기화
+	ResourceImage[0] = DDLoadBitmap(DirectOBJ, "DATA//First.BMP", 0, 0, SYSTEM);	
+	ResourceImage[1] = DDLoadBitmap(DirectOBJ, "DATA//Ending.BMP", 0, 0, SYSTEM);	
+	//ResourceImage[2] = DDLoadBitmap(DirectOBJ, "DATA//Horror.BMP", 0, 0, SYSTEM);	
+	ResourceImage[3] = DDLoadBitmap(DirectOBJ, "DATA//Setting.BMP", 0, 0,SYSTEM);
+	ResourceImage[4] = DDLoadBitmap(DirectOBJ, "DATA//Sonmogazi.BMP", 0, 0, SYSTEM);	
+	ResourceImage[5] = DDLoadBitmap(DirectOBJ, "DATA//Button.BMP", 0, 0, SYSTEM);	
+	ResourceImage[6] = DDLoadBitmap(DirectOBJ, "DATA//ZokBo.BMP", 0, 0, SYSTEM);
+	ResourceImage[7] = DDLoadBitmap(DirectOBJ, "DATA//Texts.BMP", 0, 0, SYSTEM);
+	ResourceImage[8] = DDLoadBitmap(DirectOBJ, "DATA//Stop.BMP", 0, 0, SYSTEM);
+	ResourceImage[9] = DDLoadBitmap(DirectOBJ, "DATA//Back.BMP", 0, 0, SYSTEM);
+	ResourceImage[10] = DDLoadBitmap(DirectOBJ, "DATA//main.bmp", 0, 0, SYSTEM);
+	DDSetColorKey(ResourceImage[0], BLACK);
+	DDSetColorKey(ResourceImage[1], BLACK);
+	//DDSetColorKey(ResourceImage[2], RGB(0, 0, 0));
+	DDSetColorKey(ResourceImage[3], BLACK);
+	DDSetColorKey(ResourceImage[4], BLACK);
+	DDSetColorKey(ResourceImage[5], BLACK);
+	DDSetColorKey(ResourceImage[6], BLACK);
+	DDSetColorKey(ResourceImage[7], BLACK);
+	DDSetColorKey(ResourceImage[8], BLACK);
+	DDSetColorKey(ResourceImage[9], BLACK);
+	DDSetColorKey(ResourceImage[10], BLACK);
 
-	ResourceImage[1] = DDLoadBitmap(DirectOBJ, "Ending.BMP", 0, 0);
-	DDSetColorKey(ResourceImage[1], RGB(0, 0, 0));
-
-	ResourceImage[2] = DDLoadBitmap(DirectOBJ, "Horror.BMP", 0, 0);
-	DDSetColorKey(ResourceImage[2], RGB(0, 0, 0));
-
-	ResourceImage[3] = DDLoadBitmap(DirectOBJ, "Setting.BMP", 0, 0);
-	DDSetColorKey(ResourceImage[3], RGB(0, 0, 0));
-
-	ResourceImage[4] = DDLoadBitmap(DirectOBJ, "Sonmogazi.BMP", 0, 0);
-	DDSetColorKey(ResourceImage[4], RGB(0, 0, 0));
-
-	ResourceImage[5] = DDLoadBitmap(DirectOBJ, "Button.BMP", 0, 0);
-	DDSetColorKey(ResourceImage[5], RGB(0, 0, 0));
-
-	ResourceImage[6] = DDLoadBitmap(DirectOBJ, "ZokBo.BMP", 0, 0);
-	DDSetColorKey(ResourceImage[6], RGB(0, 0, 0));
-
-	ResourceImage[7] = DDLoadBitmap(DirectOBJ, "Texts.BMP", 0, 0);
-	DDSetColorKey(ResourceImage[7], RGB(0, 0, 0));
-	
-	BackImage = DDLoadBitmap(DirectOBJ, "Back.BMP", 0, 0);
-	DDSetColorKey(BackImage, RGB(0, 0, 0));
-
-	if (_InitDirectSound())
+	//음향 초기화
+	if (SoundCard)
 	{
-		Sound[0] = SndObjCreate(SoundOBJ, "OST.WAV", 1);
-	    Sound[1] = SndObjCreate(SoundOBJ, "Select2.WAV", 1);
-		Sound[2] = SndObjCreate(SoundOBJ, "Select3.WAV", 1);
-		//Sound[3] = SndObjCreate(SoundOBJ, "Check.WAV", 1);
-		//Sound[3] = SndObjCreate(SoundOBJ, "Start.WAV", 1);
-		PlaySound("OST.wav", NULL, SND_FILENAME | SND_ASYNC);
+		Sound[0] = SndObjCreate(SoundOBJ, "Sound//OST.WAV", 1);
+	    Sound[1] = SndObjCreate(SoundOBJ, "Sound//밑장빼기.WAV", 1);
+		Sound[2] = SndObjCreate(SoundOBJ, "Sound//Select3.WAV", 1);
+		//Sound[3] = SndObjCreate(SoundOBJ, "Sound//Check.WAV", 1);
+		//Sound[4] = SndObjCreate(SoundOBJ, "Sound//Start.WAV", 1);
+		//3,4번 재생이 안됨. 이유는 모름..
 	}
+
+	randomize();
+	myFirstPae = random();
+	yourFirstPae = random();
+	while (myFirstPae == yourFirstPae){
+		yourFirstPae = random();	
+	}
+	PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
+	gam = true;
+
 
 	SetTimer(MainHwnd, 1, 10, NULL);
 
 
 	// Main message loop
-
 	while (GetMessage(&msg, NULL, 0, 0)){
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -612,5 +635,4 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	return TRUE;
 }
-
 

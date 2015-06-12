@@ -6,7 +6,7 @@
 #define _GetKeyState( vkey ) HIBYTE(GetAsyncKeyState( vkey ))
 #define _GetKeyPush( vkey )  LOBYTE(GetAsyncKeyState( vkey ))
 
-#define random(num) (int)(((long)rand() * (num)) / (RAND_MAX + 1))
+#define random() (int)(rand()%20)
 #define randomize() srand((unsigned)time(NULL))
 
 #define MAX_SOUND       50
