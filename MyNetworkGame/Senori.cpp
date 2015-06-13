@@ -845,7 +845,7 @@ BOOL MciOpen( HWND hwnd, MCIDEVICEID *wDeviceID, char *filename )
     MCI_STATUS_PARMS mciStatus;
     MCI_DGV_RECT_PARMS mciRect;
 
-    mciOpen.lpstrDeviceType="avivideo";//MPEGVideo";//"avivideo";//"ActiveMovie";
+    mciOpen.lpstrDeviceType="MPEGVideo";//MPEGVideo";//"avivideo";//"ActiveMovie";
     mciOpen.hWndParent=hwnd;
     mciOpen.dwStyle=WS_CHILD;
     mciOpen.lpstrElementName=filename;
@@ -872,13 +872,12 @@ BOOL MciOpen( HWND hwnd, MCIDEVICEID *wDeviceID, char *filename )
     }
     else
     {
-        mciRect.rc.left   = 0;
-        mciRect.rc.top    = 0;
-        mciRect.rc.right  = 799;
-        mciRect.rc.bottom = 599;
+        mciRect.rc.left   = 100;
+        mciRect.rc.top    = 100;
+        mciRect.rc.right  = 580;
+        mciRect.rc.bottom = 372;
     }
     mciSendCommand( *wDeviceID, MCI_PUT, MCI_DGV_PUT_WINDOW | MCI_DGV_RECT, (DWORD)(LPVOID)&mciRect );
-
     mciStatus.dwItem = MCI_STATUS_LENGTH;
     mciSendCommand( *wDeviceID, MCI_STATUS, MCI_STATUS_ITEM, (DWORD)(LPVOID)&mciStatus );
     AviCount = mciStatus.dwReturn;
@@ -927,10 +926,9 @@ DWORD _PlayAVI( char name[] )
         SoundOBJ->Release();
         SoundOBJ=NULL;
     }
-    if ( FULL_SCREEN ) _ScreenMode( 320, 240, 16, FULL_SCREEN );
 
     MciOpen( MainHwnd, &mcidec, name );
-    PlayMovie( mcidec, 0, 0 );
+    PlayMovie( mcidec, 0,0 );
 
     mciStatus.dwItem = MCI_STATUS_POSITION;
 
@@ -956,6 +954,15 @@ DWORD _PlayAVI( char name[] )
     }
     else SoundCard = FALSE;
 
+	if (SoundCard)
+	{
+		Sound[0] = SndObjCreate(SoundOBJ, "Sound//OST.WAV", 1);
+		Sound[1] = SndObjCreate(SoundOBJ, "Sound//밑장빼기.WAV", 1);
+		Sound[2] = SndObjCreate(SoundOBJ, "Sound//Select3.WAV", 1);
+		//Sound[3] = SndObjCreate(SoundOBJ, "Sound//Check.WAV", 1);
+		//Sound[4] = SndObjCreate(SoundOBJ, "Sound//Start.WAV", 1);
+		//3,4번 재생이 안됨. 이유는 모름..
+	}
     if ( FULL_SCREEN ) _ScreenMode( SCREEN_X, SCREEN_Y, BPP, FULL_SCREEN );
     return TRUE;
 }

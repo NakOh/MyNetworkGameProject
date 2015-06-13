@@ -14,14 +14,13 @@
 bool gam = false;
 BOOL LeftButton, RightButton;
 bool ZokBoClick = false;
-bool NothingClick = false;
-bool ZzangClick = false;
-bool SonmogaziClick = false;
+int Count;
 int myFirstPae, mySecondPae;
 int yourFirstPae, yourSecondPae;
 int myResult;
 int yourResult;
-bool result;
+int result;
+int myChoice;
 MSG msg;
 
 //void CommInit(int argc, char **argv);
@@ -38,8 +37,8 @@ void _GameProc(int FullScreen)
 	RECT    ButtonRect, goStop[20], ZokBo, Nothing, Sonmogazi;
 
 	// BackGround
-	BackScreen->BltFast(0, 0, ResourceImage[9], &BackRect, NULL);
-
+	BackScreen->BltFast(0, 0, ResourceImage[9], &BackRect, DDBLTFAST_WAIT);
+	
 	// 10월 단풍 사슴
 	goStop[0].left = 5;
 	goStop[0].top = 5;
@@ -176,16 +175,20 @@ void _GameProc(int FullScreen)
 	BackScreen->Blt(&otherGoStopSize, ResourceImage[8], &goStop[yourFirstPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
 	//버튼이 클릭되면 두번째 패를 분배
-	if (NothingClick==true || SonmogaziClick == true || ZzangClick == true){
-		mySecondPae = random();
-		while (mySecondPae == myFirstPae || mySecondPae == yourFirstPae){			
-				mySecondPae = random();		
-		}
-		yourSecondPae = random();
-		while (yourSecondPae == myFirstPae || yourSecondPae == yourFirstPae || yourSecondPae == mySecondPae){
-			yourSecondPae = random();
-		}
-		CheckResult(myFirstPae,mySecondPae);
+	if (Count!=0){
+		
+		myGoStopSize.left = 130;
+		myGoStopSize.right = myGoStopSize.left + 80;
+		myGoStopSize.top = 500;
+		myGoStopSize.bottom = myGoStopSize.top + 100;
+		BackScreen->Blt(&myGoStopSize, ResourceImage[8], &goStop[mySecondPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
+		otherGoStopSize.left = 580;
+		otherGoStopSize.right = otherGoStopSize.left + 80;
+		otherGoStopSize.top = 500;
+		otherGoStopSize.bottom = otherGoStopSize.top + 100;
+		BackScreen->Blt(&otherGoStopSize, ResourceImage[8], &goStop[yourSecondPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
 	}
 
 	RECT ButtonLocation;
@@ -299,28 +302,8 @@ void _GameProc(int FullScreen)
 		ZokBo.right = 857;
 		ZokBo.top = 0;
 		ZokBo.bottom = 960;
-		BackScreen->Blt(&ZokBoSize, ResourceImage[6], &ZokBo, DDBLT_WAIT, NULL);
-	}
-		
-	if (NothingClick == true){
-			Nothing.left = 0;
-			Nothing.right = 800;
-			Nothing.bottom = 533;
-			Nothing.top = 0;
-			BackScreen->Blt(&ImageSize, ResourceImage[0], &Nothing, DDBLT_WAIT, NULL);
-		}
-
-	if (SonmogaziClick == true){
-			Sonmogazi.left = 0;
-			Sonmogazi.right = 640;
-			Sonmogazi.top = 0;
-			Sonmogazi.bottom = 360;
-			BackScreen->Blt(&ImageSize, ResourceImage[4], &Sonmogazi, DDBLT_WAIT, NULL);
-		}
-
-		if (ZzangClick == true){
-
-		}
+		BackScreen->Blt(&ZokBoSize, ResourceImage[6], &ZokBo, DDBLT_WAIT, NULL);		
+	}		
 	
 	if (FullScreen)
 		RealScreen->Flip(NULL, DDFLIP_WAIT);
@@ -339,11 +322,6 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 {
 	switch (message)
 	{
-	case	WM_ACTIVATEAPP : Act = wParam;
-		if (Act && gam){
-			_ScreenMode(SCREEN_X, SCREEN_Y, BPP, FULL_SCREEN);
-			_CopyScreen(false);
-		}
 	case    WM_MOUSEMOVE:   MouseX = LOWORD(lParam);
 		MouseY = HIWORD(lParam);
 		break;
@@ -359,40 +337,33 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		}
 
 		//아무것도 하지 않는다 버튼
-		if (NothingClick == false){
 			if (1000 <= MouseX && MouseX <= 1154 && 250 <= MouseY && MouseY <= 310)
 			{
-				NothingClick = true;
+				PlaySound(NULL, NULL, SND_ASYNC);
+				_PlayAVI("DATA//아무것도하지않는다.avi");
+				Count++;
+				myChoice = 0;
 			}
-		}
-		else{
-			NothingClick = false;
-		}
+		
 
 		//밑 장 버튼
-		if (ZzangClick == false){
 			if (1000 <= MouseX && MouseX <= 1154 && 342 <= MouseY && MouseY <= 410)
-			{
-				ZzangClick = true;
-			}
-		}
-		else{
-			ZzangClick = false;
-		}
+			{				
+				PlaySound(NULL, NULL, SND_ASYNC);
+				_PlayAVI("DATA//밑장빼기.avi");
+				Count++;
+				myChoice = 1;
+			}		
 
 		//손 모가지 버튼
-		if (SonmogaziClick == false){
 			if (1000 <= MouseX && MouseX <= 1154 && 447 <= MouseY && MouseY <= 540)
-			{			
-				PlaySound("Sound//밑장빼기.WAV", NULL, SND_ASYNC);
-				SonmogaziClick = true;
+			{
+				PlaySound(NULL, NULL, SND_ASYNC);
+				_PlayAVI("DATA//손모가지.avi");
+				Count++;
+				myChoice = 2;
 			}
-		}
-		else{
-			PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
-			SonmogaziClick = false;
-
-		}
+	
 		break;
 	case	WM_LBUTTONUP:	
 		break;
@@ -452,6 +423,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//음향 초기화
 	if (SoundCard)
 	{
+		
 		Sound[0] = SndObjCreate(SoundOBJ, "Sound//OST.WAV", 1);
 	    Sound[1] = SndObjCreate(SoundOBJ, "Sound//밑장빼기.WAV", 1);
 		Sound[2] = SndObjCreate(SoundOBJ, "Sound//Select3.WAV", 1);
@@ -466,9 +438,36 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	while (myFirstPae == yourFirstPae){
 		yourFirstPae = random();	
 	}
-	PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
-	gam = true;
+	mySecondPae = random();
+	while (mySecondPae == myFirstPae || mySecondPae == yourFirstPae){
+		mySecondPae = random();
+	}
 
+	yourSecondPae = random();
+	while (yourSecondPae == myFirstPae || yourSecondPae == yourFirstPae || yourSecondPae == mySecondPae){
+		yourSecondPae = random();
+	}
+
+	myResult = CheckResult(myFirstPae, mySecondPae);
+	if (myResult == 70){
+		myResult=CheckResult(mySecondPae, myFirstPae);
+	}
+
+	yourResult = CheckResult(yourFirstPae, yourSecondPae);
+	if (yourResult == 70){
+		yourResult = CheckResult(yourFirstPae, yourSecondPae);
+	}
+
+	if (myResult > yourResult){
+		result = 0;
+	} 
+	else if (yourResult > myResult){
+		result = 1;
+	}
+	else{
+		result = 2;
+	}
+	PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
 
 	SetTimer(MainHwnd, 1, 10, NULL);
 
