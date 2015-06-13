@@ -79,6 +79,7 @@
   <ItemGroup>
     <ClCompile Include="DDUTIL.CPP" />
     <ClCompile Include="DSUTIL.cpp" />
+    <ClCompile Include="Logic.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Senori.cpp" />
@@ -89,6 +90,7 @@
     <ClInclude Include="DDUTIL.h" />
     <ClInclude Include="DSUTIL.h" />
     <ClInclude Include="Extern.h" />
+    <ClInclude Include="Logic.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="wspiapi.h" />
     <ClInclude Include="wtpipv6.h" />

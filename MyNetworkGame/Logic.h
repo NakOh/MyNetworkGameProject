@@ -1,0 +1,1 @@
+int CheckResult(int a1, int a2);

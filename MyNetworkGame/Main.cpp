@@ -10,10 +10,8 @@
 #include "ddutil.h"
 #include "extern.h"
 #include "data.h"
-
+#include "Logic.h"
 bool gam = false;
-
-int CheckResult(int a1, int a2);
 BOOL LeftButton, RightButton;
 bool ZokBoClick = false;
 bool NothingClick = false;
@@ -21,7 +19,11 @@ bool ZzangClick = false;
 bool SonmogaziClick = false;
 int myFirstPae, mySecondPae;
 int yourFirstPae, yourSecondPae;
+int myResult;
+int yourResult;
+bool result;
 MSG msg;
+
 //void CommInit(int argc, char **argv);
 //void CommSend();
 //////////////////////////////////////////////////////////////////////////////////
@@ -31,6 +33,7 @@ void _GameProc(int FullScreen)
 
 	RECT	BackRect = { 0, 0, 1280, 720 };
 	RECT    ZokBoSize = { 0, 30, 1280, 700 };
+	RECT	ImageSize = { 700, 200, 1000, 600 };
 	RECT    myGoStopSize, otherGoStopSize;
 	RECT    ButtonRect, goStop[20], ZokBo, Nothing, Sonmogazi;
 
@@ -172,6 +175,7 @@ void _GameProc(int FullScreen)
 	otherGoStopSize.bottom = otherGoStopSize.top + 100;
 	BackScreen->Blt(&otherGoStopSize, ResourceImage[8], &goStop[yourFirstPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
+	//¹öÆ°ÀÌ Å¬¸¯µÇ¸é µÎ¹øÂ° ÆÐ¸¦ ºÐ¹è
 	if (NothingClick==true || SonmogaziClick == true || ZzangClick == true){
 		mySecondPae = random();
 		while (mySecondPae == myFirstPae || mySecondPae == yourFirstPae){			
@@ -303,7 +307,7 @@ void _GameProc(int FullScreen)
 			Nothing.right = 800;
 			Nothing.bottom = 533;
 			Nothing.top = 0;
-			BackScreen->Blt(&ZokBoSize, ResourceImage[0], &Nothing, DDBLT_WAIT, NULL);
+			BackScreen->Blt(&ImageSize, ResourceImage[0], &Nothing, DDBLT_WAIT, NULL);
 		}
 
 	if (SonmogaziClick == true){
@@ -311,7 +315,7 @@ void _GameProc(int FullScreen)
 			Sonmogazi.right = 640;
 			Sonmogazi.top = 0;
 			Sonmogazi.bottom = 360;
-			BackScreen->Blt(&ZokBoSize, ResourceImage[4], &Sonmogazi, DDBLT_WAIT, NULL);
+			BackScreen->Blt(&ImageSize, ResourceImage[4], &Sonmogazi, DDBLT_WAIT, NULL);
 		}
 
 		if (ZzangClick == true){
@@ -327,162 +331,6 @@ void _GameProc(int FullScreen)
 		GetWindowRect(MainHwnd, &WinRect);
 		RealScreen->Blt(&WinRect, BackScreen, &Rect, DDBLT_WAIT, NULL);
 	}
-
-}
-
-//Á·º¸ ·ÎÁ÷À» È®ÀÎÇÑ´Ù.
-bool win;
-int  CheckResult(int a1,int a2){
-	//38 ±¤¶¯
-	if (a1 == 14 && a2 == 4)
-		return 100;
-	//±¤¶¯ 1+3¿ù
-	if (a1 == 18 && a2 == 14)
-		return 99;
-	//±¤¶¯ 1+8¿ù
-	if (a1 == 18 && a2 == 4)
-		return 99;
-	//Àå¶¯ (10¿ù)
-	if (a1 == 0 && a2 == 1)
-		return 98;
-	//9¿ù ¶¯
-	if (a1 == 2 && a2 == 3)
-		return 97;
-	//8¿ù¶¯
-	if (a1 == 4 && a2 == 5)
-		return 96;
-	//7¿ù¶¯
-	if (a1 == 6 && a2 == 7)
-		return 95;
-	//6¿ù¶¯
-	if (a1 == 8 && a2 == 9)
-		return 94;
-	//5¿ù¶¯
-	if (a1 == 10 && a2 == 11)
-		return 93;
-	//4¿ù¶¯
-	if (a1 == 12 && a2 == 13)
-		return 92;
-	//3¿ù¶¯
-	if (a1 == 14 && a2 == 15)
-		return 91;
-	//2¿ù¶¯
-	if (a1 == 16 && a2 == 17)
-		return 90;
-	//»±¶¯ (1¿ù)
-	if (a1 == 18 && a2 == 19)
-		return 89;
-	//¾Ë¸® (1¿ù + 2¿ù)
-	if (a1 == 18 && a2 == 16)
-		return 88;
-	if (a1 == 18 && a2 == 17)
-		return 88;
-	if (a1 == 19 && a2 == 16)
-		return 88;
-	if (a1 == 19 && a2 == 17)
-		return 88;
-	//µ¶»ç (1¿ù + 4¿ù)
-	if (a1 == 18 && a2 == 12)
-		return 87;
-	if (a1 == 18 && a2 == 13)
-		return 87;
-	if (a1 == 19 && a2 == 12)
-		return 87;
-	if (a1 == 19 && a2 == 13)
-		return 87;
-	//±¸»æ (1¿ù + 9¿ù)
-	if (a1 == 18 && a2 == 2)
-		return 86;
-	if (a1 == 18 && a2 == 3)
-		return 86;
-	if (a1 == 19 && a2 == 2)
-		return 86;
-	if (a1 == 19 && a2 == 3)
-		return 86;
-	//Àå»æ (1¿ù + 10¿ù)
-	if (a1 == 18 && a2 == 0)
-		return 85;
-	if (a1 == 18 && a2 == 1)
-		return 85;
-	if (a1 == 19 && a2 == 0)
-		return 85;
-	if (a1 == 19 && a2 == 1)
-		return 85;
-	//Àå»ç (4¿ù + 10¿ù)
-	if (a1 == 12 && a2 == 0)
-		return 84;
-	if (a1 == 12 && a2 == 1)
-		return 84;
-	if (a1 == 13 && a2 == 0)
-		return 84;
-	if (a1 == 13 && a2 == 1)
-		return 84;
-	//¼¼·ú (4¿ù + 6¿ù)
-	if (a1 == 12 && a2 == 8)
-		return 83;
-	if (a1 == 12 && a2 == 9)
-		return 83;
-	if (a1 == 13 && a2 == 8)
-		return 83;
-	if (a1 == 13 && a2 == 9)
-		return 83;
-	//°©¿À (µÎ ÀåÀÇ ÇÕÇÑ ¼öÀÇ ³¡ÀÚ¸® ¼ö°¡ 9ÀÎ °æ¿ì)(1,8)(2,7)(3,6)(4,5)
-	if (a1 == 18 && a2 == 4)
-		return 82;
-	if (a1 == 18 && a2 == 5)
-		return 82;
-	if (a1 == 19 && a2 == 4)
-		return 82;
-	if (a1 == 19 && a2 == 5)
-		return 82;
-
-	if (a1 == 16 && a2 == 6)
-		return 82;
-	if (a1 == 16 && a2 == 7)
-		return 82;
-	if (a1 == 17 && a2 == 6)
-		return 82;
-	if (a1 == 17 && a2 == 7)
-		return 82;
-
-	if (a1 == 14 && a2 == 8)
-		return 82;
-	if (a1 == 14 && a2 == 9)
-		return 82;
-	if (a1 == 15 && a2 == 8)
-		return 82;
-	if (a1 == 15 && a2 == 9)
-		return 82;
-
-	if (a1 == 12 && a2 == 10)
-		return 82;
-	if (a1 == 12 && a2 == 11)
-		return 82;
-	if (a1 == 13 && a2 == 10)
-		return 82;
-	if (a1 == 13 && a2 == 11)
-		return 82;
-	//8²ý (1,7)(2,6)(3,5)(10,8)
-	//7²ý (1,6)(2,5)(3,4)(10,7)
-	//6²ý (1,5)(2,4)(10,6)
-	//5²ý (2,3)(10,5)
-	//4²ý (1,3)(±¤³¢¸® ¸¸³ª´Â°Ç Á¦¿Ü) (5,9)
-	//3²ý (10,3)(5,8)
-	//2²ý (10,2)(5,7)
-	//1²ý (5,6)
-
-	//¸ÁÅë (2¿ù + 8¿ù)
-	if (a1 == 16 && a2 == 4)
-		return 80;
-	if (a1 == 16 && a2 == 5)
-		return 80;
-	if (a1 == 17 && a2 == 4)
-		return 80; 
-	if (a1 == 17 && a2 == 5)
-		return 80;
-	//Æ¯¼ö Á·º¸ °í·Á ¾ÈÇÔ(ÀüºÎ ¸ÁÅë Ã³¸®)
-	return 80;
-
 
 }
 
