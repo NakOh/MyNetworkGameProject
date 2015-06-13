@@ -37,7 +37,12 @@ extern DDSURFACEDESC2       ddsd;
 extern RECT                 WinRect, Rect;
 extern WORD                 *Screen;
 extern int                  SCREEN_X, SCREEN_Y;
-
+extern int myChoice;
+extern int yourChoice;
+extern int myResult;
+extern int yourResult;
+extern int myFirstPae, mySecondPae;
+extern int yourFirstPae, yourSecondPae;
 extern BOOL SoundCard;
 
 extern int  MouseX, MouseY;

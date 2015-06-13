@@ -6,6 +6,7 @@
 #include "wspiapi.h"
 
 #include "Packet.h"
+#include "Extern.h"
 
 
 SOCKET socketConnect = INVALID_SOCKET;
@@ -258,29 +259,30 @@ void CommInit(int argc, char **argv)
 
 void CommSend()
 {
-	char sendBuffer[500];
+	char sendData[200];
 	Packet sendPacket;
 	int sentBytes;
 
 	if (socketConnect == INVALID_SOCKET)
 		return;
-	
 
-		sendPacket.clear();
-		sendPacket.id(1001);
-		sendPacket.writeData(sendBuffer, strlen(sendBuffer) + 1);
-		sentBytes = ::send(socketConnect, sendPacket.getPacketBuffer(), sendPacket.getPacketSize(), 0);
+	sprintf(sendData, "%d %d %d %d", myChoice, myFirstPae, mySecondPae, myResult);
 
-		if (sentBytes < 0){
-			::shutdown(socketConnect, SD_BOTH);
-			::closesocket(socketConnect);
-			socketConnect = INVALID_SOCKET;
-		}
+	sendPacket.clear();
+	sendPacket.id(1001);
+	sendPacket.writeData(sendData, strlen(sendData) + 1);
+
+	sentBytes = ::send(socketConnect, sendPacket.getPacketBuffer(), sendPacket.getPacketSize(), 0);
+
+	if (sentBytes<0){
+		::shutdown(socketConnect, SD_BOTH);
+		::closesocket(socketConnect);
+		socketConnect = INVALID_SOCKET;
+	}
 	
 }
 
 void CommRecv(char *recvData)
 {
-
-
+		sscanf(recvData, "%d %d %d %d", &yourChoice, &yourFirstPae, &yourSecondPae, &yourResult );	
 }
