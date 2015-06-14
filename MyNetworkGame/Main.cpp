@@ -18,7 +18,8 @@ bool unCheck = false;
 int Count; int result;
 int myChoice, yourChoice, myFirstPae, mySecondPae, yourFirstPae, yourSecondPae;
 int myResult, yourResult;
-
+bool act = false;
+bool GameStart = false;
 MSG msg;
 int turn;
 
@@ -50,13 +51,21 @@ void Pae(){
 
 void _GameProc(int FullScreen)
 {
-
 	RECT	BackRect = { 0, 0, 1280, 720 };
 	RECT    ZokBoSize = { 0, 30, 1280, 700 };
 	RECT	ImageSize = { 700, 200, 1000, 600 };
+	RECT    TextSize = {40, 30, 430, 72};
 	RECT    myGoStopSize, otherGoStopSize;
 	RECT    ButtonRect, goStop[20], ZokBo;
 
+	RECT ButtonLocation;
+	RECT TextLocation;
+
+	if (GameStart==false){
+
+		BackScreen->BltFast(0, 0, ResourceImage[10], &BackRect, DDBLTFAST_WAIT);
+	}
+	else{
 	// BackGround
 	BackScreen->BltFast(0, 0, ResourceImage[9], &BackRect, DDBLTFAST_WAIT);
 	
@@ -208,6 +217,7 @@ void _GameProc(int FullScreen)
 	otherGoStopSize.bottom = otherGoStopSize.top + 100;
 	BackScreen->Blt(&otherGoStopSize, ResourceImage[8], &goStop[yourSecondPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
+
 	if (unCheck == true){
 		CommSend();
 	}
@@ -324,14 +334,17 @@ void _GameProc(int FullScreen)
 			}
 		}
 		else {
-			_Delay(5000);
+
+			TextLocation.left = 300;
+			TextLocation.right = 600;
+			TextLocation.top = 200;
+			TextLocation.bottom = 300;
+			BackScreen->Blt(&TextLocation, ResourceImage[2], &TextSize, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+			
 		}
 		
 
 	}
-
-	RECT ButtonLocation;
-
 
 	//족보 보기 Button
 
@@ -385,7 +398,7 @@ void _GameProc(int FullScreen)
 	ButtonRect.bottom = 1243;
 	BackScreen->Blt(&ButtonLocation, ResourceImage[5], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 	
-	RECT TextLocation;
+	
 	//내 패 
 	TextLocation.left = 50;
 	TextLocation.right = 170;
@@ -443,7 +456,7 @@ void _GameProc(int FullScreen)
 		ZokBo.bottom = 960;
 		BackScreen->Blt(&ZokBoSize, ResourceImage[6], &ZokBo, DDBLT_WAIT, NULL);		
 	}		
-
+	}
 	if (FullScreen)
 		RealScreen->Flip(NULL, DDFLIP_WAIT);
 	else{
@@ -465,7 +478,7 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		MouseY = HIWORD(lParam);
 		break;
 	case	WM_LBUTTONDOWN:	LeftButton = TRUE;
-		
+		GameStart = true;
 		if (ZokBoClick == false){
 			if (600 <= MouseX && MouseX <= 723 && 40 <= MouseY && MouseY <= 78)
 			{
@@ -550,7 +563,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//그래픽 초기화
 	ResourceImage[0] = DDLoadBitmap(DirectOBJ, "DATA//First.BMP", 0, 0, SYSTEM);	
 	ResourceImage[1] = DDLoadBitmap(DirectOBJ, "DATA//Ending.BMP", 0, 0, SYSTEM);	
-	//ResourceImage[2] = DDLoadBitmap(DirectOBJ, "DATA//Horror.BMP", 0, 0, SYSTEM);	
+	ResourceImage[2] = DDLoadBitmap(DirectOBJ, "DATA//Choice.BMP", 0, 0, SYSTEM);	
 	ResourceImage[3] = DDLoadBitmap(DirectOBJ, "DATA//Setting.BMP", 0, 0,SYSTEM);
 	ResourceImage[4] = DDLoadBitmap(DirectOBJ, "DATA//Sonmogazi.BMP", 0, 0, SYSTEM);	
 	ResourceImage[5] = DDLoadBitmap(DirectOBJ, "DATA//Button.BMP", 0, 0, SYSTEM);	
@@ -561,7 +574,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ResourceImage[10] = DDLoadBitmap(DirectOBJ, "DATA//main.bmp", 0, 0, SYSTEM);
 	DDSetColorKey(ResourceImage[0], BLACK);
 	DDSetColorKey(ResourceImage[1], BLACK);
-	//DDSetColorKey(ResourceImage[2], RGB(0, 0, 0));
+	DDSetColorKey(ResourceImage[2], BLACK);
 	DDSetColorKey(ResourceImage[3], BLACK);
 	DDSetColorKey(ResourceImage[4], BLACK);
 	DDSetColorKey(ResourceImage[5], BLACK);
@@ -587,9 +600,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	randomize(); 
 	Pae();
 	PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
-
-	SetTimer(MainHwnd, 1, 10, NULL);
-
+		SetTimer(MainHwnd, 1, 10, NULL);
 
 	// Main message loop
 	while (GetMessage(&msg, NULL, 0, 0)){
