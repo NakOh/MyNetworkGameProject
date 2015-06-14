@@ -49,6 +49,7 @@ extern int yourSendData;
 extern int  MouseX, MouseY;
 extern BOOL LeftButton, RightButton;
 extern BOOL FULL_SCREEN, BPP, ScanLine;
+extern int myMoney, yourMoney;
 
 extern int TotalObject, ProjectCount;
 

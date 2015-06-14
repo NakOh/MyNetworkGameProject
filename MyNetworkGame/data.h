@@ -33,26 +33,3 @@ int Click()
 	}
 	return 0;
 }
-
-void Change(int to)
-{
-	//√ ±‚»≠
-	int i;
-	if (to == 99)
-	{
-		for (i = 1; i <= 100; i++)
-		{
-			_DrawBar(400 - i * 4, 300 - i * 3, 400 + i * 4, 300 + i * 3, BLACK);
-			_CopyScreen(false);
-		}
-	}
-	else
-	{
-		char* fname[] = { "DATA//main.bmp", "DATA//end1.bmp", "DATA//end2.bmp" };
-		ResourceImage[10] = DDLoadBitmap(DirectOBJ, fname[to], 0, 0, SYSTEM);
-		SetRect(&BackRect, 0, 0, 1280, 720);
-		_DrawBmp(BackRect, 0, 0, ResourceImage[10], DDBLTFAST_NOCOLORKEY | DDBLTFAST_WAIT);
-		_CopyScreen(false);
-		
-	}
-}
