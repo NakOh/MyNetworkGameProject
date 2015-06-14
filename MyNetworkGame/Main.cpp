@@ -56,13 +56,12 @@ void _GameProc(int FullScreen)
 	RECT	ImageSize = { 700, 200, 1000, 600 };
 	RECT    TextSize = {40, 30, 430, 72};
 	RECT    myGoStopSize, otherGoStopSize;
-	RECT    ButtonRect, goStop[20], ZokBo;
+	RECT    ButtonRect, goStop[20], ZokBo, Number[10];
 
 	RECT ButtonLocation;
 	RECT TextLocation;
 
 	if (GameStart==false){
-
 		BackScreen->BltFast(0, 0, ResourceImage[10], &BackRect, DDBLTFAST_WAIT);
 	}
 	else{
@@ -189,6 +188,56 @@ void _GameProc(int FullScreen)
 	goStop[19].right = 207;
 	goStop[19].bottom = 242;
 
+	//0
+	Number[0].left = 873;
+	Number[0].top = 440;
+	Number[0].bottom = 523; 
+	Number[0].right = 936;
+	//1
+	Number[1].left = 976;
+	Number[1].top = 440;
+	Number[1].bottom = 523;
+	Number[1].right = 1030;
+	//2
+	Number[2].left = 1064;
+	Number[2].top = 440;
+	Number[2].bottom = 523;
+	Number[2].right = 1135;
+	//3
+	Number[3].left = 1165;
+	Number[3].top = 440;
+	Number[3].bottom = 523;
+	Number[3].right = 1228;
+	//4
+	Number[4].left = 1260;
+	Number[4].top = 440;
+	Number[4].bottom = 523;
+	Number[4].right = 1328;
+	//5
+	Number[5].left = 873;
+	Number[5].top = 564;
+	Number[5].bottom = 654;
+	Number[5].right = 936;
+	//6	
+	Number[6].left = 976;
+	Number[6].top = 564;
+	Number[6].bottom = 654;
+	Number[6].right = 1030;
+	//7
+	Number[7].left = 1064;
+	Number[7].top = 564;
+	Number[7].bottom = 654;
+	Number[7].right = 1135;
+	//8
+	Number[8].left = 1165;
+	Number[8].top = 564;
+	Number[8].bottom = 654;
+	Number[8].right = 1228;
+	//9
+	Number[9].left = 1260;
+	Number[9].top = 564;
+	Number[9].bottom = 654;
+	Number[9].right = 1328;
 
 	//Random으로 한 장 뽑기!  사실 순서는 이미 srand에서 다 정해짐! 내 패!
 	myGoStopSize.left = 50;
@@ -422,6 +471,13 @@ void _GameProc(int FullScreen)
 	ButtonRect.right = 1460;
 	ButtonRect.bottom = 360;
 	BackScreen->Blt(&TextLocation, ResourceImage[7], &ButtonRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
+	//숫자
+	TextLocation.left = 110;
+	TextLocation.right = 140;
+	TextLocation.top = 120;
+	TextLocation.bottom = 160;
+	BackScreen->Blt(&TextLocation, ResourceImage[7], &Number[turn], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
 	//상대 패
 	TextLocation.left = 500;

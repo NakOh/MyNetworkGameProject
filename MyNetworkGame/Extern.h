@@ -31,7 +31,7 @@ extern LPDIRECTDRAW7       DirectOBJ;
 extern LPDIRECTDRAWSURFACE7 RealScreen;
 extern LPDIRECTDRAWSURFACE7 BackScreen;
 extern LPDIRECTDRAWCLIPPER	 ClipScreen;
-extern LPDIRECTDRAWSURFACE7 ResourceImage[11];
+extern LPDIRECTDRAWSURFACE7 ResourceImage[12];
 extern LPDIRECTSOUND        SoundOBJ;
 extern DDSURFACEDESC2       ddsd;
 extern RECT                 WinRect, Rect;

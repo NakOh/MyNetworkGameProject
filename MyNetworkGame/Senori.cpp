@@ -22,7 +22,7 @@ LPDIRECTDRAW7        DirectOBJ;
 LPDIRECTDRAWSURFACE7 RealScreen;
 LPDIRECTDRAWSURFACE7 BackScreen;
 LPDIRECTDRAWCLIPPER	 ClipScreen;
-LPDIRECTDRAWSURFACE7 ResourceImage[11];
+LPDIRECTDRAWSURFACE7 ResourceImage[12];
 DDSURFACEDESC2       ddsd;
 RECT                 WinRect, Rect;
 WORD                *Screen;
