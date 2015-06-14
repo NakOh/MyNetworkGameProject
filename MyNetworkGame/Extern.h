@@ -44,7 +44,8 @@ extern int yourResult;
 extern int myFirstPae, mySecondPae;
 extern int yourFirstPae, yourSecondPae;
 extern BOOL SoundCard;
-
+extern int mySendData;
+extern int yourSendData;
 extern int  MouseX, MouseY;
 extern BOOL LeftButton, RightButton;
 extern BOOL FULL_SCREEN, BPP, ScanLine;

@@ -11,22 +11,27 @@
 #include "extern.h"
 #include "data.h"
 #include "Logic.h"
+
 BOOL LeftButton, RightButton;
 bool ZokBoClick = false;
+bool unCheck = false;
 int Count; int result;
 int myChoice, yourChoice, myFirstPae, mySecondPae, yourFirstPae, yourSecondPae;
 int myResult, yourResult;
+
 MSG msg;
 int turn;
+
 void CommInit(int argc, char **argv);
 void CommSend();
 void CommRecv(char *recvData);
 
+int mySendData;
+int yourSendData;
 //////////////////////////////////////////////////////////////////////////////////
 void Pae(){
 
 	myFirstPae = random();
-	yourFirstPae = random();
 	while (myFirstPae == yourFirstPae){
 		yourFirstPae = random();
 	}
@@ -50,7 +55,7 @@ void _GameProc(int FullScreen)
 	RECT    ZokBoSize = { 0, 30, 1280, 700 };
 	RECT	ImageSize = { 700, 200, 1000, 600 };
 	RECT    myGoStopSize, otherGoStopSize;
-	RECT    ButtonRect, goStop[20], ZokBo, Nothing, Sonmogazi;
+	RECT    ButtonRect, goStop[20], ZokBo;
 
 	// BackGround
 	BackScreen->BltFast(0, 0, ResourceImage[9], &BackRect, DDBLTFAST_WAIT);
@@ -196,6 +201,16 @@ void _GameProc(int FullScreen)
 	myGoStopSize.bottom = myGoStopSize.top + 100;
 	BackScreen->Blt(&myGoStopSize, ResourceImage[8], &goStop[mySecondPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
+	//2번째 패를 보여줫!
+	otherGoStopSize.left = 580;
+	otherGoStopSize.right = otherGoStopSize.left + 80;
+	otherGoStopSize.top = 500;
+	otherGoStopSize.bottom = otherGoStopSize.top + 100;
+	BackScreen->Blt(&otherGoStopSize, ResourceImage[8], &goStop[yourSecondPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
+
+	if (unCheck == true){
+		CommSend();
+	}
 	//버튼이 클릭되면 결과 호출
 	if (Count!=0){
 
@@ -212,92 +227,106 @@ void _GameProc(int FullScreen)
 			result = 2;
 		}
 
-		otherGoStopSize.left = 580;
-		otherGoStopSize.right = otherGoStopSize.left + 80;
-		otherGoStopSize.top = 500;
-		otherGoStopSize.bottom = otherGoStopSize.top + 100;
-		BackScreen->Blt(&otherGoStopSize, ResourceImage[8], &goStop[yourSecondPae], DDBLT_WAIT | DDBLT_KEYSRC, NULL);
 
-		//0은 아무것도 하지 않는다, 1은 밑장 뺀다, 2는 손모가지 잡는다.
-		if (myChoice == 0 && yourChoice == 0){
+		//0은 아무것도 하지 않는다, 1은 밑장 뺀다, 2는 손모가지 잡는다.=
+		if (myChoice == 1 && yourChoice == 1){
 			turn = turn + 1;
-			myChoice = -1;
 			if (Count > 0){
 				Pae();
 				Count = 0;
-			}
-		}
-		else if (myChoice == 0 && yourChoice == 1){
-			turn = turn + 1;
-			myChoice = -1;
-			if (Count > 0){
-				Pae();
-				Count = 0;
-			}
-		}
-		else if (myChoice == 0 && yourChoice == 2){
-			_PlayAVI("DATA//헛다리.AVI");
-			turn = turn + 1;
-			myChoice = -1;
-			if (Count > 0){
-				Pae();
-				Count = 0;
-			}
-		}
-		else if (myChoice == 1 && yourChoice == 0){
-			turn = turn + 1;
-			myChoice = -1;
-			if (Count > 0){
-				Pae();
-				Count = 0;
-			}
-		}
-		else if (myChoice == 1 && yourChoice == 1){
-			turn = turn + 1;
-			myChoice = -1;
-			if (Count > 0){
-				Pae();
-				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
 			}
 		}
 		else if (myChoice == 1 && yourChoice == 2){
-			_PlayAVI("DATA//손모가지날아감.avi");
 			turn = turn + 1;
-			myChoice = -1;
 			if (Count > 0){
 				Pae();
 				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
 			}
 		}
-		else if (myChoice == 2 && yourChoice == 0){
-			_PlayAVI("DATA//헛다리.AVI"); 
+		else if (myChoice == 1 && yourChoice == 3){
 			turn = turn + 1;
-			myChoice = -1;
 			if (Count > 0){
 				Pae();
 				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
 			}
+			_PlayAVI("DATA//헛다리.AVI");
 		}
 		else if (myChoice == 2 && yourChoice == 1){
-			_PlayAVI("DATA//손모가지날아감.avi");
 			turn = turn + 1;
-			myChoice = -1;
 			if (Count > 0){
 				Pae();
 				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
 			}
 		}
 		else if (myChoice == 2 && yourChoice == 2){
 			turn = turn + 1;
-			myChoice = -1;
 			if (Count > 0){
 				Pae();
 				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
+			}
+		}
+		else if (myChoice == 2 && yourChoice == 3){
+			turn = turn + 1;
+			if (Count > 0){
+				Pae();
+				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
+			}
+			_PlayAVI("DATA//손모가지날아감.avi");
+		}
+		else if (myChoice == 3 && yourChoice == 1){
+			turn = turn + 1;
+			if (Count > 0){
+				Pae();
+				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
+			}
+			_PlayAVI("DATA//헛다리.AVI");
+		}
+		else if (myChoice == 3 && yourChoice == 2){
+			turn = turn + 1;
+			if (Count > 0){
+				Pae();
+				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
+			}
+			_PlayAVI("DATA//손모가지날아감.avi");
+		}
+		else if (myChoice == 3 && yourChoice == 3){
+			turn = turn + 1;
+			if (Count > 0){
+				Pae();
+				Count = 0;
+				yourChoice = -1;
+				CommSend();
+				myChoice = -1;
 			}
 		}
 		else {
 			_Delay(5000);
 		}
+		
 
 	}
 
@@ -452,7 +481,9 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 			{
 				PlaySound(NULL, NULL, SND_ASYNC);
 				Count++;
-				myChoice = 0;
+				myChoice = 1;
+				mySendData = 1;
+				CommSend();
 				_PlayAVI("DATA//아무것도하지않는다.avi");
 				PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);	
 			}
@@ -463,7 +494,9 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 			{
 				PlaySound(NULL, NULL, SND_ASYNC);
 				Count++;
-				myChoice = 1;
+				myChoice = 2;
+				mySendData = 1;
+				CommSend();
 				_PlayAVI("DATA//밑장빼기.avi");				
 				PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
 			}
@@ -473,7 +506,9 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 			{
 				PlaySound(NULL, NULL, SND_ASYNC);
 				Count++;
-				myChoice = 2;
+				myChoice = 3;
+				mySendData = 1;
+				CommSend();
 				_PlayAVI("DATA//손모가지.avi");
 				PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
 			}
@@ -491,7 +526,9 @@ long FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		PostQuitMessage(0);
 		break;
 	case WM_TIMER:
-		     CommSend();
+		if (yourSendData == 0){
+			CommSend();
+		}
 			_GameProc(0);		
 		break;
 	}
@@ -509,8 +546,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetFontWidth(100, 100, 3 );
 
 
-	CommInit(NULL, NULL);	
-
+	CommInit(NULL, NULL);
 	//그래픽 초기화
 	ResourceImage[0] = DDLoadBitmap(DirectOBJ, "DATA//First.BMP", 0, 0, SYSTEM);	
 	ResourceImage[1] = DDLoadBitmap(DirectOBJ, "DATA//Ending.BMP", 0, 0, SYSTEM);	
@@ -546,11 +582,10 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//Sound[4] = SndObjCreate(SoundOBJ, "Sound//Start.WAV", 1);
 		//3,4번 재생이 안됨. 이유는 모름..
 	}
+	CommSend();
 	turn = 1;
 	randomize(); 
 	Pae();
-
-	
 	PlaySound("Sound//OST.WAV", NULL, SND_ASYNC);
 
 	SetTimer(MainHwnd, 1, 10, NULL);

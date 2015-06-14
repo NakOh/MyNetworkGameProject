@@ -266,7 +266,7 @@ void CommSend()
 	if (socketConnect == INVALID_SOCKET)
 		return;
 
-	sprintf(sendData, "%d %d %d %d", myChoice, myFirstPae, mySecondPae, myResult);
+	sprintf(sendData, "%d %d %d %d %d", myChoice, myFirstPae, mySecondPae, myResult, mySendData);
 
 	sendPacket.clear();
 	sendPacket.id(1001);
@@ -284,5 +284,5 @@ void CommSend()
 
 void CommRecv(char *recvData)
 {
-		sscanf(recvData, "%d %d %d %d", &yourChoice, &yourFirstPae, &yourSecondPae, &yourResult );	
+		sscanf(recvData, "%d %d %d %d %d", &yourChoice, &yourFirstPae, &yourSecondPae, &yourResult, &yourSendData );	
 }

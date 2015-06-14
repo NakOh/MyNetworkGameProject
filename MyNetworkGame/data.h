@@ -6,36 +6,8 @@ BOOL ReplayFlag, Quit = false, key, key2, Act = true;
 extern HSNDOBJ Sound[];
 RECT BackRect;
 
-char* midi[] = { "stage1.mid", "stage2.mid", "stage3.mid", "stage4.mid", "stage5.mid" };
-//char *snr1[]={
-// 	};
 
 
-BOOL _MidiPlay(char* pszMidiFN, BOOL bReplayFlag)
-{
-	char szMCISendString[256];
-
-	wsprintf(szMCISendString, "open %s type sequencer alias MUSIC", pszMidiFN);
-
-	if (mciSendString("close all", NULL, 0, NULL) != 0) return (FALSE);
-	if (mciSendString(szMCISendString, NULL, 0, NULL) != 0) return (FALSE);
-	if (mciSendString("play MUSIC from 0 notify", NULL, 0, MainHwnd) != 0) return(FALSE);
-
-	ReplayFlag = bReplayFlag;
-	return TRUE;
-}
-
-BOOL _MidiStop(void)
-{
-	if (mciSendString("close all", NULL, 0, NULL) != 0) return (FALSE);
-	return TRUE;
-}
-
-BOOL _MidiReplay(void)
-{
-	if (mciSendString("play MUSIC from 0 notify", NULL, 0, MainHwnd) != 0) return (FALSE);
-	return TRUE;
-}
 
 void _Play(int num)
 {
